@@ -2,3 +2,4 @@
 *.pyc
 /rogaine_tg_bot_data.db
 /venv
+/.idea
