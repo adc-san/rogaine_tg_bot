@@ -5,16 +5,6 @@ import sqlite3
 import config
 import bot_messages
 
-version = '0.1  '
-have_kp_list = dict()
-print('----------------------------')
-print('-   ROGAINE TELEGRAM BOT   -')
-print(f'-     STARTED v.{version}      -')
-print('----------------------------')
-# Создаем экземпляр бота
-bot = telebot.TeleBot(config.bot_token)
-
-
 def create_tables():
     # Создание или подключение к базе данных SQLite
     conn = sqlite3.connect('rogaine_tg_bot_data.db')
@@ -35,9 +25,17 @@ def create_tables():
                       )''')
     conn.close()
 
+version = '0.1  '
+have_kp_list = dict()
+print('----------------------------')
+print('-   ROGAINE TELEGRAM BOT   -')
+print(f'-     STARTED v.{version}      -')
+print('----------------------------')
+# Создаем экземпляр бота
+bot = telebot.TeleBot(config.bot_token)
 
+# Создаем для хранения данных
 create_tables()
-
 
 # Функция, обрабатывающая команду /start
 @bot.message_handler(commands=["start"])
