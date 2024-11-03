@@ -1,6 +1,7 @@
 import telebot
 from telebot import types  # для указания типов
 import sqlite3
+from datetime import datetime
 
 import config
 import bot_messages
@@ -69,6 +70,21 @@ def start(message):
     if tmp_message is not None:
         bot.send_message(message.chat.id, bot_messages.some_error) # Неизвестная ошибка БД
 
+# Функция, обрабатывающая команду /finish
+@bot.message_handler(commands=["finish"])
+def finish(message):
+    # Вычисление суммы очков участника в базе
+    conn = sqlite3.connect('rogaine_tg_bot_data.db')
+    cursor = conn.cursor()
+    user_id = message.from_user.id
+    cursor.execute('SELECT SUM(kp / 10) FROM game WHERE id=?', (user_id, ))
+    kp_sum = cursor.fetchone()[0]
+    cursor.execute('SELECT COUNT(kp) FROM game WHERE id=?', (user_id, ))
+    kp_count = cursor.fetchone()[0]
+    cursor.execute('SELECT kp FROM game WHERE id=?', (user_id, ))
+    kp_list = cursor.fetchall()
+    conn.close()
+    bot.send_message(message.chat.id, bot_messages.fin.format(kp_count, len(config.secret_dict), kp_list, kp_sum, datetime.now().strftime("%H:%M:%S - %Y/%m/%d"), config.bot_message_org))
 
 # Получение сообщений от юзера
 @bot.message_handler(content_types=["text"])
