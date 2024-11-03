@@ -25,7 +25,7 @@ def create_tables():
                       )''')
     conn.close()
 
-version = '0.1  '
+version = '0.01 '
 have_kp_list = dict()
 print('----------------------------')
 print('-   ROGAINE TELEGRAM BOT   -')
