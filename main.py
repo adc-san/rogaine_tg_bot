@@ -7,7 +7,7 @@ import config
 import bot_messages
 
 # Версия релиза
-version = '0.01 '
+version = '0.1  '
 
 # Создаем экземпляр бота
 bot = telebot.TeleBot(config.bot_token)
