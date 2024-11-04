@@ -108,7 +108,7 @@ def finish(message):
 def admin(message):
     conn = sqlite3.connect('rogaine_tg_bot_data.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM users WHERE id=?', (361566349,))
+    cursor.execute('SELECT * FROM users')
     user_list = cursor.fetchall()
     conn.close()
     for u in user_list:
