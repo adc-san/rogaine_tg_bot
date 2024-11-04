@@ -9,6 +9,9 @@ import bot_messages
 # Версия релиза
 version = '0.01 '
 
+# Создаем экземпляр бота
+bot = telebot.TeleBot(config.bot_token)
+
 # Словарь для хранения последних номеров КП, для которых ожидаем ввод шифра
 have_kp_list = dict()
 
@@ -92,7 +95,7 @@ def finish(message):
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
     if message.text == 'Финиш':
-        #finish(message)
+        finish(message)
         return 0
     user_text = message.text.strip().lower()  # Убираем пробелы и переводим в нижний регистр
     user_id = message.from_user.id
@@ -149,14 +152,13 @@ def handle_text(message):
             bot.send_message(message.chat.id, bot_messages.digits_need)
 
 
-# Старт программы
+
+
+# Старт программы-----------------------------------------------------------------------------
 print('----------------------------')
 print('-   ROGAINE TELEGRAM BOT   -')
 print(f'-     STARTED v.{version}      -')
 print('----------------------------')
-
-# Создаем экземпляр бота
-bot = telebot.TeleBot(config.bot_token)
 
 # Создаем таблицы для хранения данных
 create_tables()
