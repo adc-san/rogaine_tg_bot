@@ -90,6 +90,9 @@ def finish(message):
 # Получение сообщений от юзера
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
+    if message.text == 'Финиш':
+        finish(message)
+        return
     user_text = message.text.strip().lower()  # Убираем пробелы и переводим в нижний регистр
     user_id = message.from_user.id
 
