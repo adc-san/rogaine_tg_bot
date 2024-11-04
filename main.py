@@ -165,6 +165,8 @@ def handle_text(message):
                     bot.send_message(message.chat.id, bot_messages.false_answer)
                     bot.send_message(message.chat.id, bot_messages.point)
             elif user_text == config.secret_dict[user_kp].strip().lower():
+                # Сохранение пользователя
+                save_user(user_id, message.from_user.username, message.from_user.first_name, message.from_user.last_name)
                 # Сохранение информации о КП в базу данных
                 conn = sqlite3.connect('rogaine_tg_bot_data.db')
                 cursor = conn.cursor()
