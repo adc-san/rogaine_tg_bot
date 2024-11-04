@@ -15,12 +15,14 @@ bot = telebot.TeleBot(config.bot_token)
 # Словарь для хранения последних номеров КП, для которых ожидаем ввод шифра
 have_kp_list = dict()
 
+
 # Конвертирует список кортежей в строку с разделителями ', '
 def convert_list_tup_to_str(list_tup):
-    s=''
+    s = ''
     for tup in list_tup:
-        s+=str(tup[0]) + ', '
+        s += str(tup[0]) + ', '
     return s.rstrip().rstrip(',')
+
 
 def create_tables():
     # Создание или подключение к базе данных SQLite
@@ -34,7 +36,7 @@ def create_tables():
                   first_name TEXT,
                   last_name TEXT
                   )''')
-    
+
     cursor.execute('''CREATE TABLE IF NOT EXISTS game (
                    num INTEGER PRIMARY KEY AUTOINCREMENT,
                    id INTEGER,
@@ -43,11 +45,13 @@ def create_tables():
                    )''')
     conn.close()
 
+
 def make_reply_keyboard():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton("Финиш")
     markup.add(btn1)
     return markup
+
 
 # Функция, обрабатывающая команду /start
 @bot.message_handler(commands=["start"])
@@ -68,13 +72,14 @@ def start(message):
                        (user_id, username, first_name, last_name))
         conn.commit()
     except sqlite3.IntegrityError:
-        pass # Пользователь уже есть в БД
+        pass  # Пользователь уже есть в БД
     except:
         tmp_message = bot_messages.some_error
     finally:
         conn.close()
     if tmp_message is not None:
-        bot.send_message(message.chat.id, bot_messages.some_error) # Неизвестная ошибка БД
+        bot.send_message(message.chat.id, bot_messages.some_error)  # Неизвестная ошибка БД
+
 
 # Функция, обрабатывающая команду /finish
 @bot.message_handler(commands=["finish"])
@@ -83,14 +88,17 @@ def finish(message):
     conn = sqlite3.connect('rogaine_tg_bot_data.db')
     cursor = conn.cursor()
     user_id = message.from_user.id
-    cursor.execute('SELECT SUM(kp / 10) FROM game WHERE id=?', (user_id, ))
+    cursor.execute('SELECT SUM(kp / 10) FROM game WHERE id=?', (user_id,))
     kp_sum = cursor.fetchone()[0]
-    cursor.execute('SELECT COUNT(kp) FROM game WHERE id=?', (user_id, ))
+    cursor.execute('SELECT COUNT(kp) FROM game WHERE id=?', (user_id,))
     kp_count = cursor.fetchone()[0]
-    cursor.execute('SELECT kp FROM game WHERE id=? ORDER BY num', (user_id, ))
+    cursor.execute('SELECT kp FROM game WHERE id=? ORDER BY num', (user_id,))
     kp_list = convert_list_tup_to_str(cursor.fetchall())
     conn.close()
-    bot.send_message(message.chat.id, bot_messages.fin.format(kp_count, len(config.secret_dict), kp_list, kp_sum, datetime.now().strftime("%H:%M:%S - %Y/%m/%d"), config.bot_message_org))
+    bot.send_message(message.chat.id, bot_messages.fin.format(kp_count, len(config.secret_dict), kp_list, kp_sum,
+                                                              datetime.now().strftime("%H:%M:%S - %Y/%m/%d"),
+                                                              config.bot_message_org))
+
 
 # Получение сообщений от юзера
 @bot.message_handler(content_types=["text"])
@@ -112,12 +120,12 @@ def handle_text(message):
             info = cursor.execute('SELECT * FROM game WHERE id=? AND kp=?',
                                   (user_id, user_kp)).fetchone()
             conn.close()
-            if info is None: 
+            if info is None:
                 have_kp_list.update({user_id: user_kp})
                 bot.send_message(message.chat.id, bot_messages.answer.format(user_kp))
             else:
-                 bot.send_message(message.chat.id, bot_messages.have_kp.format(user_kp))
-                 bot.send_message(message.chat.id, bot_messages.point) 
+                bot.send_message(message.chat.id, bot_messages.have_kp.format(user_kp))
+                bot.send_message(message.chat.id, bot_messages.point)
         else:
             bot.send_message(message.chat.id, bot_messages.no_point)
     else:
@@ -136,12 +144,12 @@ def handle_text(message):
                     tmp_message = bot_messages.true_dub.format(user_kp)
                 except:
                     # Неизвестная ошибка БД
-                    tmp_message =  bot_messages.some_error
+                    tmp_message = bot_messages.some_error
                 else:
                     tmp_message = bot_messages.true_answer + ' ' + bot_messages.point
                 finally:
                     conn.close()
-                bot.send_message(message.chat.id, tmp_message)  
+                bot.send_message(message.chat.id, tmp_message)
             else:
                 # Не угадал
                 bot.send_message(message.chat.id, bot_messages.false_answer)
@@ -151,8 +159,6 @@ def handle_text(message):
         else:
             # Еще не ввёл номер КП
             bot.send_message(message.chat.id, bot_messages.digits_need)
-
-
 
 
 # Старт программы-----------------------------------------------------------------------------
