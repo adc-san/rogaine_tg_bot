@@ -36,10 +36,11 @@ def create_tables():
                   )''')
     
     cursor.execute('''CREATE TABLE IF NOT EXISTS game (
-                      id INTEGER,
-                      kp INTEGER,
-                      PRIMARY KEY(id, kp)
-                      )''')
+                   num INTEGER PRIMARY KEY AUTOINCREMENT,
+                   id INTEGER,
+                   kp INTEGER,
+                   UNIQUE(id, kp)
+                   )''')
     conn.close()
 
 def make_reply_keyboard():
@@ -86,7 +87,7 @@ def finish(message):
     kp_sum = cursor.fetchone()[0]
     cursor.execute('SELECT COUNT(kp) FROM game WHERE id=?', (user_id, ))
     kp_count = cursor.fetchone()[0]
-    cursor.execute('SELECT kp FROM game WHERE id=?', (user_id, ))
+    cursor.execute('SELECT kp FROM game WHERE id=? ORDER BY num', (user_id, ))
     kp_list = convert_list_tup_to_str(cursor.fetchall())
     conn.close()
     bot.send_message(message.chat.id, bot_messages.fin.format(kp_count, len(config.secret_dict), kp_list, kp_sum, datetime.now().strftime("%H:%M:%S - %Y/%m/%d"), config.bot_message_org))
