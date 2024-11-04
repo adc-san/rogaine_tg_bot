@@ -39,19 +39,20 @@ def create_tables():
                       )''')
     conn.close()
 
+def make_reply_keyboard():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton("Финиш")
+    markup.add(btn1)
+    return markup
+
 # Функция, обрабатывающая команду /start
 @bot.message_handler(commands=["start"])
 def start(message):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton("Продолжить игру")
-    btn2 = types.KeyboardButton("Завершить игру")
-    markup.add(btn1, btn2)
-
     user_id = message.from_user.id
     username = message.from_user.username
     first_name = message.from_user.first_name
     last_name = message.from_user.last_name
-    bot.send_message(message.chat.id, bot_messages.start.format(first_name), reply_markup=markup)
+    bot.send_message(message.chat.id, bot_messages.start.format(first_name), reply_markup=make_reply_keyboard())
     bot.send_message(message.chat.id, bot_messages.test)
 
     # Сохранение информации о пользователе в базу данных
@@ -91,8 +92,8 @@ def finish(message):
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
     if message.text == 'Финиш':
-        finish(message)
-        return
+        #finish(message)
+        return 0
     user_text = message.text.strip().lower()  # Убираем пробелы и переводим в нижний регистр
     user_id = message.from_user.id
 
