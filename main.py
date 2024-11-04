@@ -52,17 +52,7 @@ def make_reply_keyboard():
     markup.add(btn1)
     return markup
 
-
-# Функция, обрабатывающая команду /start
-@bot.message_handler(commands=["start"])
-def start(message):
-    user_id = message.from_user.id
-    username = message.from_user.username
-    first_name = message.from_user.first_name
-    last_name = message.from_user.last_name
-    bot.send_message(message.chat.id, bot_messages.start.format(first_name), reply_markup=make_reply_keyboard())
-    bot.send_message(message.chat.id, bot_messages.test)
-
+def save_user(user_id, username, first_name, last_name):
     # Сохранение информации о пользователе в базу данных
     conn = sqlite3.connect('rogaine_tg_bot_data.db')
     cursor = conn.cursor()
@@ -77,7 +67,18 @@ def start(message):
         tmp_message = bot_messages.some_error
     finally:
         conn.close()
-    if tmp_message is not None:
+    return tmp_message
+
+# Функция, обрабатывающая команду /start
+@bot.message_handler(commands=["start"])
+def start(message):
+    user_id = message.from_user.id
+    username = message.from_user.username
+    first_name = message.from_user.first_name
+    last_name = message.from_user.last_name
+    bot.send_message(message.chat.id, bot_messages.start.format(first_name), reply_markup=make_reply_keyboard())
+    bot.send_message(message.chat.id, bot_messages.test)
+    if save_user(user_id, username, first_name, last_name) is not None:
         bot.send_message(message.chat.id, bot_messages.some_error)  # Неизвестная ошибка БД
 
 # Вычисление результатов участника в базе
