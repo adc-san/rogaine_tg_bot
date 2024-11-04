@@ -7,7 +7,7 @@ import config
 import bot_messages
 
 # Версия релиза
-version = '0.1  '
+version = '0.2  '
 
 # Создаем экземпляр бота
 bot = telebot.TeleBot(config.bot_token)
@@ -164,7 +164,7 @@ def handle_text(message):
 # Старт программы-----------------------------------------------------------------------------
 print('----------------------------')
 print('-   ROGAINE TELEGRAM BOT   -')
-print(f'-     STARTED v.{version}      -')
+print(f'-     STARTED v{version}       -')
 print('----------------------------')
 
 # Создаем таблицы для хранения данных
