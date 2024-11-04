@@ -6,6 +6,12 @@ from datetime import datetime
 import config
 import bot_messages
 
+# Версия релиза
+version = '0.01 '
+
+# Словарь для хранения последних номеров КП, для которых ожидаем ввод шифра
+have_kp_list = dict()
+
 # Конвертирует список кортежей в строку с разделителями ', '
 def convert_list_tup_to_str(list_tup):
     s=''
@@ -32,18 +38,6 @@ def create_tables():
                       PRIMARY KEY(id, kp)
                       )''')
     conn.close()
-
-version = '0.01 '
-have_kp_list = dict()
-print('----------------------------')
-print('-   ROGAINE TELEGRAM BOT   -')
-print(f'-     STARTED v.{version}      -')
-print('----------------------------')
-# Создаем экземпляр бота
-bot = telebot.TeleBot(config.bot_token)
-
-# Создаем для хранения данных
-create_tables()
 
 # Функция, обрабатывающая команду /start
 @bot.message_handler(commands=["start"])
@@ -151,5 +145,17 @@ def handle_text(message):
             bot.send_message(message.chat.id, bot_messages.digits_need)
 
 
-# Запускаем бота
+# Старт программы
+print('----------------------------')
+print('-   ROGAINE TELEGRAM BOT   -')
+print(f'-     STARTED v.{version}      -')
+print('----------------------------')
+
+# Создаем экземпляр бота
+bot = telebot.TeleBot(config.bot_token)
+
+# Создаем таблицы для хранения данных
+create_tables()
+
+# Запускаем бота - бесконечный цикл опроса
 bot.polling(none_stop=True, interval=0)
