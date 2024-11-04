@@ -6,6 +6,13 @@ from datetime import datetime
 import config
 import bot_messages
 
+# Конвертирует список кортежей в строку с разделителями ', '
+def convert_list_tup_to_str(list_tup):
+    s=''
+    for tup in list_tup:
+        s+=str(tup[0]) + ', '
+    return s.rstrip().rstrip(',')
+
 def create_tables():
     # Создание или подключение к базе данных SQLite
     conn = sqlite3.connect('rogaine_tg_bot_data.db')
@@ -82,7 +89,7 @@ def finish(message):
     cursor.execute('SELECT COUNT(kp) FROM game WHERE id=?', (user_id, ))
     kp_count = cursor.fetchone()[0]
     cursor.execute('SELECT kp FROM game WHERE id=?', (user_id, ))
-    kp_list = cursor.fetchall()
+    kp_list = convert_list_tup_to_str(cursor.fetchall())
     conn.close()
     bot.send_message(message.chat.id, bot_messages.fin.format(kp_count, len(config.secret_dict), kp_list, kp_sum, datetime.now().strftime("%H:%M:%S - %Y/%m/%d"), config.bot_message_org))
 
