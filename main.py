@@ -80,14 +80,10 @@ def start(message):
     if tmp_message is not None:
         bot.send_message(message.chat.id, bot_messages.some_error)  # Неизвестная ошибка БД
 
-
-# Функция, обрабатывающая команду /finish
-@bot.message_handler(commands=["finish"])
-def finish(message):
-    # Вычисление суммы очков участника в базе
+# Вычисление результатов участника в базе
+def user_result(user_id):
     conn = sqlite3.connect('rogaine_tg_bot_data.db')
     cursor = conn.cursor()
-    user_id = message.from_user.id
     cursor.execute('SELECT SUM(kp / 10) FROM game WHERE id=?', (user_id,))
     kp_sum = cursor.fetchone()[0]
     cursor.execute('SELECT COUNT(kp) FROM game WHERE id=?', (user_id,))
@@ -95,10 +91,33 @@ def finish(message):
     cursor.execute('SELECT kp FROM game WHERE id=? ORDER BY num', (user_id,))
     kp_list = convert_list_tup_to_str(cursor.fetchall())
     conn.close()
+    return kp_count, kp_sum, kp_list
+
+# Функция, обрабатывающая команду /finish
+@bot.message_handler(commands=["finish"])
+def finish(message):
+    user_id = message.from_user.id
+    kp_count, kp_sum, kp_list = user_result(user_id)
     bot.send_message(message.chat.id, bot_messages.fin.format(kp_count, len(config.secret_dict), kp_list, kp_sum,
                                                               datetime.now().strftime("%H:%M:%S - %Y/%m/%d"),
                                                               config.bot_message_org))
 
+# Функция, обрабатывающая отладочную команду /admin
+@bot.message_handler(commands=["admin"])
+def admin(message):
+    conn = sqlite3.connect('rogaine_tg_bot_data.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users WHERE id=?', (361566349,))
+    user_list = cursor.fetchall()
+    conn.close()
+    for u in user_list:
+        user_id = u[0]
+        username = u[1]
+        first_name = u[2]
+        last_name = u[3]
+        kp_count, kp_sum, kp_list = user_result(user_id)
+        bot.send_message(message.chat.id, "id{}-{}\n{} {}\n{}/{} = {} = {}"
+                         .format(user_id, username, first_name, last_name, kp_count, len(config.secret_dict),kp_sum, kp_list))
 
 # Получение сообщений от юзера
 @bot.message_handler(content_types=["text"])
