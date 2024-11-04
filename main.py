@@ -111,14 +111,19 @@ def admin(message):
     cursor.execute('SELECT * FROM users')
     user_list = cursor.fetchall()
     conn.close()
-    for u in user_list:
-        user_id = u[0]
-        username = u[1]
-        first_name = u[2]
-        last_name = u[3]
-        kp_count, kp_sum, kp_list = user_result(user_id)
-        bot.send_message(message.chat.id, "id{}-{}\n{} {}\n{}/{} = {} = {}"
-                         .format(user_id, username, first_name, last_name, kp_count, len(config.secret_dict),kp_sum, kp_list))
+    if user_list is None:
+        bot.send_message(message.chat.id,'Админ, список пользователей пуст')
+    elif len(user_list) == 0:
+        bot.send_message(message.chat.id, 'Админ, список пользователей пуст')
+    else:
+        for u in user_list:
+            user_id = u[0]
+            username = u[1]
+            first_name = u[2]
+            last_name = u[3]
+            kp_count, kp_sum, kp_list = user_result(user_id)
+            bot.send_message(message.chat.id, "id{}-{}\n{} {}\n{}/{} = {} = {}"
+                             .format(user_id, username, first_name, last_name, kp_count, len(config.secret_dict),kp_sum, kp_list))
 
 # Получение сообщений от юзера
 @bot.message_handler(content_types=["text"])
