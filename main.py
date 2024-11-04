@@ -151,8 +151,14 @@ def handle_text(message):
     else:
         if user_id in have_kp_list:
             user_kp = have_kp_list[user_id]
-            if user_text == config.test_dict[user_kp].strip().lower():
-                bot.send_message(message.chat.id, bot_messages.true_answer)
+            # Если точка в тестовом словаре
+            if user_kp in config.test_dict:
+                if user_text == config.test_dict[user_kp].strip().lower():
+                    bot.send_message(message.chat.id, bot_messages.true_answer + ' ' + bot_messages.point)
+                else:
+                    # Не угадал
+                    bot.send_message(message.chat.id, bot_messages.false_answer)
+                    bot.send_message(message.chat.id, bot_messages.point)
             elif user_text == config.secret_dict[user_kp].strip().lower():
                 # Сохранение информации о КП в базу данных
                 conn = sqlite3.connect('rogaine_tg_bot_data.db')
