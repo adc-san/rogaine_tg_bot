@@ -133,7 +133,7 @@ def handle_text(message):
     if user_text.isdigit():
         # Если КП есть на карте
         user_kp = int(user_text)
-        if user_kp in config.secret_dict:
+        if (user_kp in config.secret_dict) or (user_kp in config.test_dict):
             # Проверка наличия взятого КП в базе
             conn = sqlite3.connect('rogaine_tg_bot_data.db')
             cursor = conn.cursor()
@@ -151,7 +151,9 @@ def handle_text(message):
     else:
         if user_id in have_kp_list:
             user_kp = have_kp_list[user_id]
-            if user_text == config.secret_dict[user_kp].strip().lower():
+            if user_text == config.test_dict[user_kp].strip().lower():
+                bot.send_message(message.chat.id, bot_messages.true_answer)
+            elif user_text == config.secret_dict[user_kp].strip().lower():
                 # Сохранение информации о КП в базу данных
                 conn = sqlite3.connect('rogaine_tg_bot_data.db')
                 cursor = conn.cursor()
