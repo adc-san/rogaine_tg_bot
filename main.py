@@ -6,6 +6,7 @@ from datetime import datetime
 import config
 import bot_messages
 
+
 # Версия релиза
 version = '0.3  '
 # Фиксируем время запуска
@@ -54,7 +55,7 @@ def make_reply_keyboard():
     markup.add(btn1)
     return markup
 
-def save_user(user_id, username, first_name, last_name):
+def save_user(user_id, username, first_name, last_name, user_command_name):
     # Сохранение информации о пользователе в базу данных
     conn = sqlite3.connect('rogaine_tg_bot_data.db')
     cursor = conn.cursor()
@@ -80,7 +81,7 @@ def start(message):
     last_name = message.from_user.last_name
     bot.send_message(message.chat.id, bot_messages.start.format(first_name), reply_markup=make_reply_keyboard())
     bot.send_message(message.chat.id, bot_messages.test)
-    if save_user(user_id, username, first_name, last_name) is not None:
+    if save_user(user_id, username, first_name, last_name, user_command_name='') is not None:
         bot.send_message(message.chat.id, bot_messages.some_error)  # Неизвестная ошибка БД
 
 # Вычисление результатов участника в базе
@@ -137,59 +138,73 @@ def handle_text(message):
 
     # Код КП - это число, а шифр - ВСЕГДА не число
     if user_text.isdigit():
-        # Если КП есть на карте
         user_kp = int(user_text)
-        if (user_kp in config.secret_dict) or (user_kp in config.test_dict):
+        # Если КП есть на карте
+        if user_kp in config.secret_dict:
             # Проверка наличия взятого КП в базе
             conn = sqlite3.connect('rogaine_tg_bot_data.db')
             cursor = conn.cursor()
             info = cursor.execute('SELECT * FROM game WHERE id=? AND kp=?',
                                   (user_id, user_kp)).fetchone()
             conn.close()
-            if info is None:
+            if info is not None and len(info) > 0:
+                # КП уже есть в базе
+                bot.send_message(message.chat.id, bot_messages.have_kp.format(user_kp) + message.chat.id, bot_messages.next_point)
+            else:
+                # КП ещё не взят
                 have_kp_list.update({user_id: user_kp})
                 bot.send_message(message.chat.id, bot_messages.answer.format(user_kp))
-            else:
-                bot.send_message(message.chat.id, bot_messages.have_kp.format(user_kp))
-                bot.send_message(message.chat.id, bot_messages.point)
         else:
+            # КП нет на карте
             bot.send_message(message.chat.id, bot_messages.no_point)
     else:
         if user_id in have_kp_list:
             user_kp = have_kp_list[user_id]
-            # Если точка в тестовом словаре
-            if user_kp in config.test_dict:
-                if user_text == config.test_dict[user_kp].strip().lower():
-                    bot.send_message(message.chat.id, bot_messages.true_answer.format(user_kp) + ' ' + bot_messages.point, parse_mode="Markdown")
+            cp_secret = config.secret_dict[user_kp].strip().lower()
+            user_command_name = ''
+            # Если тест в режиме запоминания названия команды
+            if user_kp == config.test_cp and config.test_command_name_mode:
+                # Запоминаем имя команды и подставляем правильный шифр
+                user_command_name, user_text = user_text, cp_secret
+
+            # Если шифр совпадает
+            if user_text == cp_secret:
+                # Тестовая точка
+                if user_kp == config.test_cp:
+                    if config.test_command_name_mode:
+                        tmp_message = bot_messages.true_answer.format(user_kp) + ' ' + bot_messages.command_name.format(user_command_name) + ' ' + bot_messages.next_point
+                    else:
+                        tmp_message = bot_messages.true_answer.format(user_kp) + ' ' + bot_messages.next_point
+                    # Сохранение пользователя при взятии тестовой точки
+                    save_user(user_id, message.from_user.username, message.from_user.first_name, message.from_user.last_name, user_command_name)
                 else:
-                    # Не угадал
-                    bot.send_message(message.chat.id, bot_messages.false_answer)
-                    bot.send_message(message.chat.id, bot_messages.point)
-            elif user_text == config.secret_dict[user_kp].strip().lower():
-                # Сохранение пользователя
-                save_user(user_id, message.from_user.username, message.from_user.first_name, message.from_user.last_name)
-                # Сохранение информации о КП в базу данных
-                conn = sqlite3.connect('rogaine_tg_bot_data.db')
-                cursor = conn.cursor()
-                try:
-                    cursor.execute("INSERT INTO game (id, kp) VALUES (?, ?)",
+                    # Сохранение информации о КП в базу данных
+                    conn = sqlite3.connect('rogaine_tg_bot_data.db')
+                    cursor = conn.cursor()
+                    try:
+                        cursor.execute("INSERT INTO game (id, kp) VALUES (?, ?)",
                                    (user_id, user_kp))
-                    conn.commit()
-                except sqlite3.IntegrityError:
-                    # КП уже взят
-                    tmp_message = bot_messages.true_dub.format(user_kp)
-                except:
-                    # Неизвестная ошибка БД
-                    tmp_message = bot_messages.some_error
-                else:
-                    tmp_message = bot_messages.true_answer.format(user_kp) + ' ' + bot_messages.point
-                finally:
-                    conn.close()
+                        conn.commit()
+                    except sqlite3.IntegrityError:
+                        # КП уже взят
+                        tmp_message = bot_messages.true_dub.format(user_kp)
+                    except:
+                        # Неизвестная ошибка БД
+                        tmp_message = bot_messages.some_error
+                    else:
+                        tmp_message = bot_messages.true_answer.format(user_kp)
+                        if user_kp == config.fin_cp:
+                            tmp_message += ' ' + bot_messages.in_finish
+                        else:
+                            tmp_message += ' ' + bot_messages.next_point
+                    finally:
+                        conn.close()
                 bot.send_message(message.chat.id, tmp_message, parse_mode="Markdown")
+                if user_kp == config.fin_cp:
+                    finish(message)
             else:
-                # Не угадал
-                bot.send_message(message.chat.id, bot_messages.false_answer)
-                bot.send_message(message.chat.id, bot_messages.point)
+                # Не угадал шифр
+                bot.send_message(message.chat.id, bot_messages.false_answer + ' ' + bot_messages.point)
             if user_id in have_kp_list:
                 del have_kp_list[user_id]
         else:
