@@ -162,7 +162,7 @@ def handle_text(message):
             # Если точка в тестовом словаре
             if user_kp in config.test_dict:
                 if user_text == config.test_dict[user_kp].strip().lower():
-                    bot.send_message(message.chat.id, bot_messages.true_answer + ' ' + bot_messages.point, parse_mode="Markdown")
+                    bot.send_message(message.chat.id, bot_messages.true_answer.format(user_kp) + ' ' + bot_messages.point, parse_mode="Markdown")
                 else:
                     # Не угадал
                     bot.send_message(message.chat.id, bot_messages.false_answer)
@@ -184,7 +184,7 @@ def handle_text(message):
                     # Неизвестная ошибка БД
                     tmp_message = bot_messages.some_error
                 else:
-                    tmp_message = bot_messages.true_answer + ' ' + bot_messages.point
+                    tmp_message = bot_messages.true_answer.format(user_kp) + ' ' + bot_messages.point
                 finally:
                     conn.close()
                 bot.send_message(message.chat.id, tmp_message, parse_mode="Markdown")
