@@ -8,6 +8,8 @@ import bot_messages
 
 # Версия релиза
 version = '0.2  '
+# Фиксируем время запуска
+start_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
 
 # Создаем экземпляр бота
 bot = telebot.TeleBot(config.bot_token)
@@ -106,6 +108,7 @@ def finish(message):
 # Функция, обрабатывающая отладочную команду /admin
 @bot.message_handler(commands=["admin"])
 def admin(message):
+    bot.send_message(message.chat.id, f'{start_time} {version}')
     conn = sqlite3.connect('rogaine_tg_bot_data.db')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM users')
@@ -200,6 +203,7 @@ def handle_text(message):
 print('----------------------------')
 print('-   ROGAINE TELEGRAM BOT   -')
 print(f'-     STARTED v{version}       -')
+print(f'-  {start_time}   -')
 print('----------------------------')
 
 # Создаем таблицы для хранения данных
