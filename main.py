@@ -114,11 +114,7 @@ def admin(message):
     cursor.execute('SELECT * FROM users')
     user_list = cursor.fetchall()
     conn.close()
-    if user_list is None:
-        bot.send_message(message.chat.id,bot_messages.admin_nodata)
-    elif len(user_list) == 0:
-        bot.send_message(message.chat.id, bot_messages.admin_nodata)
-    else:
+    if len(user_list) > 0:
         for u in user_list:
             user_id = u[0]
             username = u[1]
@@ -127,6 +123,8 @@ def admin(message):
             kp_count, kp_sum, kp_list = user_result(user_id)
             bot.send_message(message.chat.id, "id{}-{}\n{} {}\n{}/{} = {} = {}"
                              .format(user_id, username, first_name, last_name, kp_count, len(config.secret_dict),kp_sum, kp_list))
+    else:
+        bot.send_message(message.chat.id,bot_messages.admin_nodata)
 
 # Получение сообщений от юзера
 @bot.message_handler(content_types=["text"])
