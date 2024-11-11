@@ -110,7 +110,7 @@ def finish(message):
 # Функция, обрабатывающая отладочную команду /admin
 @bot.message_handler(commands=["admin"])
 def admin(message):
-    bot.send_message(message.chat.id, f'{start_time} {version}')
+    bot.send_message(message.chat.id, f'{start_time} v{version}')
     conn = sqlite3.connect('rogaine_tg_bot_data.db')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM users')
