@@ -1,3 +1,5 @@
+from secrets import token_hex
+
 import telebot
 from telebot import types  # для указания типов
 import sqlite3
@@ -7,12 +9,12 @@ import config
 import bot_messages
 
 # Версия релиза
-version = '0.2  '
+version = '0.3  '
 # Фиксируем время запуска
 start_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
 
-# Создаем экземпляр бота
-bot = telebot.TeleBot(config.bot_token)
+# Создаем экземпляр бота, многопоточность отключена для избежания гонок обработки(threaded=False)
+bot = telebot.TeleBot(config.bot_token, threaded=False)
 
 # Словарь для хранения последних номеров КП, для которых ожидаем ввод шифра
 have_kp_list = dict()
