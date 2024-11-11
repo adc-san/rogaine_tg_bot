@@ -1,4 +1,3 @@
-from secrets import token_hex
 import telebot
 from telebot import types  # для указания типов
 import sqlite3
