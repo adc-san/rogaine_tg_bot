@@ -29,7 +29,7 @@ def convert_list_tup_to_str(list_tup):
 
 def create_tables():
     # Создание или подключение к базе данных SQLite
-    conn = sqlite3.connect('rogaine_tg_bot_data.db')
+    conn = sqlite3.connect(config.db_filename)
     cursor = conn.cursor()
 
     # Создание таблицы для хранения информации о пользователях
@@ -58,7 +58,7 @@ def make_reply_keyboard():
 
 def save_user(user_id, username, first_name, last_name, command_name):
     # Сохранение информации о пользователе в базу данных
-    conn = sqlite3.connect('rogaine_tg_bot_data.db')
+    conn = sqlite3.connect(config.db_filename)
     cursor = conn.cursor()
     tmp_message = None
     try:
@@ -95,7 +95,7 @@ def start(message):
 
 # Вычисление результатов участника в базе
 def user_result(user_id):
-    conn = sqlite3.connect('rogaine_tg_bot_data.db')
+    conn = sqlite3.connect(config.db_filename)
     cursor = conn.cursor()
     cursor.execute('SELECT SUM(cp / 10) FROM game WHERE id=?', (user_id,))
     cp_sum = cursor.fetchone()[0]
@@ -119,7 +119,7 @@ def finish(message):
 @bot.message_handler(commands=["admin"])
 def admin(message):
     bot.send_message(message.chat.id, f'{start_time} v{version}')
-    conn = sqlite3.connect('rogaine_tg_bot_data.db')
+    conn = sqlite3.connect(config.db_filename)
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM users')
     user_list = cursor.fetchall()
@@ -151,7 +151,7 @@ def handle_text(message):
         # Если КП есть на карте
         if user_cp in config.secret_dict:
             # Проверка наличия взятого КП в базе
-            conn = sqlite3.connect('rogaine_tg_bot_data.db')
+            conn = sqlite3.connect(config.db_filename)
             cursor = conn.cursor()
             info = cursor.execute('SELECT * FROM game WHERE id=? AND cp=?',
                                   (user_id, user_cp)).fetchone()
@@ -189,7 +189,7 @@ def handle_text(message):
                         tmp_message += bot_messages.some_error
                 else:
                     # Сохранение информации о КП в базу данных
-                    conn = sqlite3.connect('rogaine_tg_bot_data.db')
+                    conn = sqlite3.connect(config.db_filename)
                     cursor = conn.cursor()
                     try:
                         cursor.execute("INSERT INTO game (id, cp) VALUES (?, ?)",
