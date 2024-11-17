@@ -185,7 +185,8 @@ def handle_text(message):
                     else:
                         tmp_message = bot_messages.true_answer.format(user_cp) + ' ' + bot_messages.next_point
                     # Сохранение пользователя при взятии тестовой точки
-                    save_user(user_id, message.from_user.username, message.from_user.first_name, message.from_user.last_name, user_command_name)
+                    if save_user(user_id, message.from_user.username, message.from_user.first_name, message.from_user.last_name, user_command_name) is not None:
+                        tmp_message += bot_messages.some_error
                 else:
                     # Сохранение информации о КП в базу данных
                     conn = sqlite3.connect('rogaine_tg_bot_data.db')
