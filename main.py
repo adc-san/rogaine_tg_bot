@@ -133,7 +133,7 @@ def handle_text(message):
     if message.text == 'Финиш':
         finish(message)
         return 0
-    user_text = message.text.strip().lower()  # Убираем пробелы и переводим в нижний регистр
+    user_text = message.text.strip()  # Убираем пробелы по краям
     user_id = message.from_user.id
 
     # Код КП - это число, а шифр - ВСЕГДА не число
@@ -164,9 +164,9 @@ def handle_text(message):
             user_command_name = ''
             # Если тест в режиме запоминания названия команды
             if user_kp == config.test_cp and config.test_command_name_mode:
-                # Запоминаем имя команды и подставляем правильный шифр
+                # Запоминаем имя команды и подставляем правильный шифр в качестве ответа
                 user_command_name, user_text = user_text, cp_secret
-
+            user_text = user_text.lower() # Переводим в нижний регистр
             # Если шифр совпадает
             if user_text == cp_secret:
                 # Тестовая точка
