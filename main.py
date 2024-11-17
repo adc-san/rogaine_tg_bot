@@ -90,7 +90,7 @@ def start(message):
     last_name = message.from_user.last_name
     bot.send_message(message.chat.id, bot_messages.start.format(first_name), reply_markup=make_reply_keyboard())
     bot.send_message(message.chat.id, bot_messages.test)
-    if save_user(user_id, username, first_name, last_name, user_command_name='') is not None:
+    if save_user(user_id, username, first_name, last_name, command_name='') is not None:
         bot.send_message(message.chat.id, bot_messages.some_error)  # Неизвестная ошибка БД
 
 # Вычисление результатов участника в базе
