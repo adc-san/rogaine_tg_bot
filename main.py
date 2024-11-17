@@ -34,10 +34,11 @@ def create_tables():
 
     # Создание таблицы для хранения информации о пользователях
     cursor.execute('''CREATE TABLE IF NOT EXISTS users (
-                  id INTEGER PRIMARY KEY,
-                  username TEXT,
-                  first_name TEXT,
-                  last_name TEXT
+                   id INTEGER PRIMARY KEY,
+                   username TEXT,
+                   first_name TEXT,
+                   last_name TEXT,
+                   command_name TEXT
                   )''')
 
     cursor.execute('''CREATE TABLE IF NOT EXISTS game (
@@ -55,17 +56,25 @@ def make_reply_keyboard():
     markup.add(btn1)
     return markup
 
-def save_user(user_id, username, first_name, last_name, user_command_name):
+def save_user(user_id, username, first_name, last_name, command_name):
     # Сохранение информации о пользователе в базу данных
     conn = sqlite3.connect('rogaine_tg_bot_data.db')
     cursor = conn.cursor()
     tmp_message = None
     try:
-        cursor.execute("INSERT INTO users (id, username, first_name, last_name) VALUES (?, ?, ?, ?)",
-                       (user_id, username, first_name, last_name))
+        cursor.execute("INSERT INTO users (id, username, first_name, last_name, command_name) VALUES (?, ?, ?, ?, ?)",
+                       (user_id, username, first_name, last_name, command_name))
         conn.commit()
     except sqlite3.IntegrityError:
-        pass  # Пользователь уже есть в БД
+        # Пользователь уже есть в БД
+        # Сохраняем только имя команды, если оно передано
+        if len(command_name) > 0:
+            try:
+                cursor.execute("UPDATE users SET command_name=? WHERE id=?",
+                              (command_name, user_id))
+                conn.commit()
+            except:
+                pass
     except:
         tmp_message = bot_messages.some_error
     finally:
