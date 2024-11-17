@@ -16,7 +16,7 @@ start_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
 bot = telebot.TeleBot(config.bot_token, threaded=False)
 
 # Словарь для хранения последних номеров КП, для которых ожидаем ввод шифра
-have_kp_list = dict()
+have_cp_list = dict()
 
 
 # Конвертирует список кортежей в строку с разделителями ', '
@@ -89,20 +89,20 @@ def user_result(user_id):
     conn = sqlite3.connect('rogaine_tg_bot_data.db')
     cursor = conn.cursor()
     cursor.execute('SELECT SUM(kp / 10) FROM game WHERE id=?', (user_id,))
-    kp_sum = cursor.fetchone()[0]
+    cp_sum = cursor.fetchone()[0]
     cursor.execute('SELECT COUNT(kp) FROM game WHERE id=?', (user_id,))
-    kp_count = cursor.fetchone()[0]
+    cp_count = cursor.fetchone()[0]
     cursor.execute('SELECT kp FROM game WHERE id=? ORDER BY num', (user_id,))
-    kp_list = convert_list_tup_to_str(cursor.fetchall())
+    cp_list = convert_list_tup_to_str(cursor.fetchall())
     conn.close()
-    return kp_count, kp_sum, kp_list
+    return cp_count, cp_sum, cp_list
 
 # Функция, обрабатывающая команду /finish
 @bot.message_handler(commands=["finish"])
 def finish(message):
     user_id = message.from_user.id
-    kp_count, kp_sum, kp_list = user_result(user_id)
-    bot.send_message(message.chat.id, bot_messages.fin.format(kp_count, len(config.secret_dict), kp_list, kp_sum,
+    cp_count, cp_sum, cp_list = user_result(user_id)
+    bot.send_message(message.chat.id, bot_messages.fin.format(cp_count, len(config.secret_dict), cp_list, cp_sum,
                                                               datetime.now().strftime("%H:%M:%S - %Y/%m/%d"),
                                                               config.bot_message_org))
 
@@ -121,9 +121,9 @@ def admin(message):
             username = u[1]
             first_name = u[2]
             last_name = u[3]
-            kp_count, kp_sum, kp_list = user_result(user_id)
+            cp_count, cp_sum, cp_list = user_result(user_id)
             bot.send_message(message.chat.id, "id{}-{}\n{} {}\n{}/{} = {} = {}"
-                             .format(user_id, username, first_name, last_name, kp_count, len(config.secret_dict),kp_sum, kp_list))
+                             .format(user_id, username, first_name, last_name, cp_count, len(config.secret_dict),cp_sum, cp_list))
     else:
         bot.send_message(message.chat.id,bot_messages.admin_nodata)
 
@@ -138,43 +138,43 @@ def handle_text(message):
 
     # Код КП - это число, а шифр - ВСЕГДА не число
     if user_text.isdigit():
-        user_kp = int(user_text)
+        user_cp = int(user_text)
         # Если КП есть на карте
-        if user_kp in config.secret_dict:
+        if user_cp in config.secret_dict:
             # Проверка наличия взятого КП в базе
             conn = sqlite3.connect('rogaine_tg_bot_data.db')
             cursor = conn.cursor()
             info = cursor.execute('SELECT * FROM game WHERE id=? AND kp=?',
-                                  (user_id, user_kp)).fetchone()
+                                  (user_id, user_cp)).fetchone()
             conn.close()
             if info is not None and len(info) > 0:
                 # КП уже есть в базе
-                bot.send_message(message.chat.id, bot_messages.have_kp.format(user_kp) + message.chat.id, bot_messages.next_point)
+                bot.send_message(message.chat.id, bot_messages.have_cp.format(user_cp) + message.chat.id, bot_messages.next_point)
             else:
                 # КП ещё не взят
-                have_kp_list.update({user_id: user_kp})
-                bot.send_message(message.chat.id, bot_messages.answer.format(user_kp))
+                have_cp_list.update({user_id: user_cp})
+                bot.send_message(message.chat.id, bot_messages.answer.format(user_cp))
         else:
             # КП нет на карте
             bot.send_message(message.chat.id, bot_messages.no_point)
     else:
-        if user_id in have_kp_list:
-            user_kp = have_kp_list[user_id]
-            cp_secret = config.secret_dict[user_kp].strip().lower()
+        if user_id in have_cp_list:
+            user_cp = have_cp_list[user_id]
+            cp_secret = config.secret_dict[user_cp].strip().lower()
             user_command_name = ''
             # Если тест в режиме запоминания названия команды
-            if user_kp == config.test_cp and config.test_command_name_mode:
+            if user_cp == config.test_cp and config.test_command_name_mode:
                 # Запоминаем имя команды и подставляем правильный шифр в качестве ответа
                 user_command_name, user_text = user_text, cp_secret
             user_text = user_text.lower() # Переводим в нижний регистр
             # Если шифр совпадает
             if user_text == cp_secret:
                 # Тестовая точка
-                if user_kp == config.test_cp:
+                if user_cp == config.test_cp:
                     if config.test_command_name_mode:
-                        tmp_message = bot_messages.true_answer.format(user_kp) + ' ' + bot_messages.command_name.format(user_command_name) + ' ' + bot_messages.next_point
+                        tmp_message = bot_messages.true_answer.format(user_cp) + ' ' + bot_messages.command_name.format(user_command_name) + ' ' + bot_messages.next_point
                     else:
-                        tmp_message = bot_messages.true_answer.format(user_kp) + ' ' + bot_messages.next_point
+                        tmp_message = bot_messages.true_answer.format(user_cp) + ' ' + bot_messages.next_point
                     # Сохранение пользователя при взятии тестовой точки
                     save_user(user_id, message.from_user.username, message.from_user.first_name, message.from_user.last_name, user_command_name)
                 else:
@@ -183,30 +183,30 @@ def handle_text(message):
                     cursor = conn.cursor()
                     try:
                         cursor.execute("INSERT INTO game (id, kp) VALUES (?, ?)",
-                                   (user_id, user_kp))
+                                   (user_id, user_cp))
                         conn.commit()
                     except sqlite3.IntegrityError:
                         # КП уже взят
-                        tmp_message = bot_messages.true_dub.format(user_kp)
+                        tmp_message = bot_messages.true_dub.format(user_cp)
                     except:
                         # Неизвестная ошибка БД
                         tmp_message = bot_messages.some_error
                     else:
-                        tmp_message = bot_messages.true_answer.format(user_kp)
-                        if user_kp == config.fin_cp:
+                        tmp_message = bot_messages.true_answer.format(user_cp)
+                        if user_cp == config.fin_cp:
                             tmp_message += ' ' + bot_messages.in_finish
                         else:
                             tmp_message += ' ' + bot_messages.next_point
                     finally:
                         conn.close()
                 bot.send_message(message.chat.id, tmp_message, parse_mode="Markdown")
-                if user_kp == config.fin_cp:
+                if user_cp == config.fin_cp:
                     finish(message)
             else:
                 # Не угадал шифр
                 bot.send_message(message.chat.id, bot_messages.false_answer + ' ' + bot_messages.point)
-            if user_id in have_kp_list:
-                del have_kp_list[user_id]
+            if user_id in have_cp_list:
+                del have_cp_list[user_id]
         else:
             # Еще не ввёл номер КП
             bot.send_message(message.chat.id, bot_messages.digits_need)
