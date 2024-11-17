@@ -8,7 +8,7 @@ import bot_messages
 
 
 # Версия релиза
-version = '0.3  '
+version = '0.4  '
 # Фиксируем время запуска
 start_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
 
@@ -43,8 +43,8 @@ def create_tables():
     cursor.execute('''CREATE TABLE IF NOT EXISTS game (
                    num INTEGER PRIMARY KEY AUTOINCREMENT,
                    id INTEGER,
-                   kp INTEGER,
-                   UNIQUE(id, kp)
+                   cp INTEGER,
+                   UNIQUE(id, cp)
                    )''')
     conn.close()
 
@@ -88,11 +88,11 @@ def start(message):
 def user_result(user_id):
     conn = sqlite3.connect('rogaine_tg_bot_data.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT SUM(kp / 10) FROM game WHERE id=?', (user_id,))
+    cursor.execute('SELECT SUM(cp / 10) FROM game WHERE id=?', (user_id,))
     cp_sum = cursor.fetchone()[0]
-    cursor.execute('SELECT COUNT(kp) FROM game WHERE id=?', (user_id,))
+    cursor.execute('SELECT COUNT(cp) FROM game WHERE id=?', (user_id,))
     cp_count = cursor.fetchone()[0]
-    cursor.execute('SELECT kp FROM game WHERE id=? ORDER BY num', (user_id,))
+    cursor.execute('SELECT cp FROM game WHERE id=? ORDER BY num', (user_id,))
     cp_list = convert_list_tup_to_str(cursor.fetchall())
     conn.close()
     return cp_count, cp_sum, cp_list
@@ -144,7 +144,7 @@ def handle_text(message):
             # Проверка наличия взятого КП в базе
             conn = sqlite3.connect('rogaine_tg_bot_data.db')
             cursor = conn.cursor()
-            info = cursor.execute('SELECT * FROM game WHERE id=? AND kp=?',
+            info = cursor.execute('SELECT * FROM game WHERE id=? AND cp=?',
                                   (user_id, user_cp)).fetchone()
             conn.close()
             if info is not None and len(info) > 0:
@@ -182,7 +182,7 @@ def handle_text(message):
                     conn = sqlite3.connect('rogaine_tg_bot_data.db')
                     cursor = conn.cursor()
                     try:
-                        cursor.execute("INSERT INTO game (id, kp) VALUES (?, ?)",
+                        cursor.execute("INSERT INTO game (id, cp) VALUES (?, ?)",
                                    (user_id, user_cp))
                         conn.commit()
                     except sqlite3.IntegrityError:
