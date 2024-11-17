@@ -74,7 +74,7 @@ def save_user(user_id, username, first_name, last_name, command_name):
                               (command_name, user_id))
                 conn.commit()
             except:
-                pass
+                tmp_message = bot_messages.some_error
     except:
         tmp_message = bot_messages.some_error
     finally:
