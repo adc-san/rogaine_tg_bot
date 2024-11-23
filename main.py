@@ -130,9 +130,11 @@ def finish(message):
     finish_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
     #Записываем время финиша в БД
     user_write_finish_time(user_id, finish_time)
-    bot.send_message(message.chat.id, bot_messages.fin1.format(cp_count, len(config.secret_dict), cp_list, cp_sum) + '\n' +
-                     bot_messages.fin2.format(no_cp_list) + '\n' +
-                     bot_messages.fin3.format(finish_time, config.bot_message_org))
+    tmp_message = bot_messages.fin1.format(cp_count, len(config.secret_dict), cp_list, cp_sum)
+    if len(no_cp_list) > 0:
+        tmp_message += '\n' + bot_messages.fin2.format(no_cp_list)
+    tmp_message += '\n' + bot_messages.fin3.format(finish_time, config.bot_message_org)
+    bot.send_message(message.chat.id, tmp_message)
 
 # Функция, обрабатывающая отладочную команду /admin
 @bot.message_handler(commands=["admin"])
