@@ -212,7 +212,7 @@ def handle_text(message):
                     conn = sqlite3.connect(config.db_filename)
                     cursor = conn.cursor()
                     try:
-                        cursor.execute("INSERT INTO game (id, cp, ch) VALUES (?, ?)",
+                        cursor.execute("INSERT INTO game (id, cp, ch) VALUES (?, ?, ?)",
                                    (user_id, user_cp, 1))
                         conn.commit()
                     except sqlite3.IntegrityError:
