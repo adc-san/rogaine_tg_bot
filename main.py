@@ -54,7 +54,7 @@ def create_tables():
 
 def make_reply_keyboard():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton("Финиш")
+    btn1 = types.KeyboardButton("🏁 Финиш 🏁")
     markup.add(btn1)
     return markup
 
@@ -163,7 +163,7 @@ def admin(message):
 # Получение сообщений от юзера
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
-    if message.text == 'Финиш':
+    if message.text == '🏁 Финиш 🏁':
         finish(message)
         return 0
     user_text = message.text.strip()  # Убираем пробелы по краям
