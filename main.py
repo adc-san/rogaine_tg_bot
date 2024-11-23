@@ -108,13 +108,26 @@ def user_result(user_id):
     conn.close()
     return cp_count, cp_sum, cp_list
 
+# Функция записывает время финиша в БД
+def user_write_finish_time(finish_time):
+    conn = sqlite3.connect(config.db_filename)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE users SET finish_time=? WHERE id=?",
+                        (finish_time, user_id))
+        conn.commit()
+    except:
+        pass
+
 # Функция, обрабатывающая команду /finish
 @bot.message_handler(commands=["finish"])
 def finish(message):
     user_id = message.from_user.id
     cp_count, cp_sum, cp_list = user_result(user_id)
-    bot.send_message(message.chat.id, bot_messages.fin.format(cp_count, len(config.secret_dict), cp_list, cp_sum,
-                                                              datetime.now().strftime("%H:%M:%S - %Y/%m/%d"),
+    finish_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
+    #Записываем время финиша в БД
+    user_write_finish_time(finish_time)
+    bot.send_message(message.chat.id, bot_messages.fin.format(cp_count, len(config.secret_dict), cp_list, cp_sum, finish_time,
                                                               config.bot_message_org))
 
 # Функция, обрабатывающая отладочную команду /admin
