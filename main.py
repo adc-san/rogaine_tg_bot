@@ -186,7 +186,7 @@ def handle_text(message):
             else:
                 # КП ещё не взят
                 have_cp_list.update({user_id: user_cp})
-                bot.send_message(message.chat.id, bot_messages.answer.format(user_cp))
+                bot.send_message(message.chat.id, bot_messages.answer.format(user_cp), reply_markup=make_reply_keyboard())
         else:
             # КП нет на карте
             bot.send_message(message.chat.id, bot_messages.no_point)
