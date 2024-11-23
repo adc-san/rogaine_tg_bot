@@ -224,9 +224,9 @@ def handle_text(message):
                     else:
                         tmp_message = bot_messages.true_answer.format(user_cp)
                         if user_cp == config.fin_cp:
-                            tmp_message += ' ' + bot_messages.in_finish
+                            tmp_message += '\n' + bot_messages.in_finish
                         else:
-                            tmp_message += ' ' + bot_messages.next_point
+                            tmp_message += '\n' + bot_messages.next_point
                     finally:
                         conn.close()
                 bot.send_message(message.chat.id, tmp_message, parse_mode="Markdown")
