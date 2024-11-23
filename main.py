@@ -139,24 +139,26 @@ def finish(message):
 # Функция, обрабатывающая отладочную команду /admin
 @bot.message_handler(commands=["admin"])
 def admin(message):
+    user_id = message.from_user.id
     bot.send_message(message.chat.id, f'{start_time} v{version}')
-    conn = sqlite3.connect(config.db_filename)
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM users')
-    user_list = cursor.fetchall()
-    conn.close()
-    if len(user_list) > 0:
-        for u in user_list:
-            user_id = u[0]
-            username = u[1]
-            first_name = u[2]
-            last_name = u[3]
-            command_name = u[4]
-            cp_count, cp_sum, cp_list, no_cp_list = user_result(user_id)
-            bot.send_message(message.chat.id, "id{}-{}\n{} {} {}\n{}/{} = {} = {}({})"
-                             .format(user_id, command_name, username, first_name, last_name, cp_count, len(config.secret_dict), cp_sum, cp_list, no_cp_list))
-    else:
-        bot.send_message(message.chat.id,bot_messages.admin_nodata)
+    if user_id in config.admin_id:
+        conn = sqlite3.connect(config.db_filename)
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM users')
+        user_list = cursor.fetchall()
+        conn.close()
+        if len(user_list) > 0:
+            for u in user_list:
+                user_id = u[0]
+                username = u[1]
+                first_name = u[2]
+                last_name = u[3]
+                command_name = u[4]
+                cp_count, cp_sum, cp_list, no_cp_list = user_result(user_id)
+                bot.send_message(message.chat.id, "id{}-{}\n{} {} {}\n{}/{} = {} = {}({})"
+                                 .format(user_id, command_name, username, first_name, last_name, cp_count, len(config.secret_dict), cp_sum, cp_list, no_cp_list))
+        else:
+            bot.send_message(message.chat.id,bot_messages.admin_nodata)
 
 # Получение сообщений от юзера
 @bot.message_handler(content_types=["text"])
