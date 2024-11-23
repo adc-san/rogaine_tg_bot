@@ -109,7 +109,7 @@ def user_result(user_id):
     return cp_count, cp_sum, cp_list
 
 # Функция записывает время финиша в БД
-def user_write_finish_time(finish_time):
+def user_write_finish_time(user_id, finish_time):
     conn = sqlite3.connect(config.db_filename)
     cursor = conn.cursor()
     try:
@@ -126,7 +126,7 @@ def finish(message):
     cp_count, cp_sum, cp_list = user_result(user_id)
     finish_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
     #Записываем время финиша в БД
-    user_write_finish_time(finish_time)
+    user_write_finish_time(user_id, finish_time)
     bot.send_message(message.chat.id, bot_messages.fin.format(cp_count, len(config.secret_dict), cp_list, cp_sum, finish_time,
                                                               config.bot_message_org))
 
