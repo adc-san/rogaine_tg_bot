@@ -99,14 +99,17 @@ def start(message):
 def user_result(user_id):
     conn = sqlite3.connect(config.db_filename)
     cursor = conn.cursor()
-    cursor.execute('SELECT SUM(cp / 10) FROM game WHERE id=?', (user_id,))
+    cursor.execute('SELECT SUM(cp / 10) FROM game WHERE id=? AND ch=? ', (user_id, 1))
     cp_sum = cursor.fetchone()[0]
-    cursor.execute('SELECT COUNT(cp) FROM game WHERE id=?', (user_id,))
+    cursor.execute('SELECT COUNT(cp) FROM game WHERE id=? AND ch=? ', (user_id, 1))
     cp_count = cursor.fetchone()[0]
-    cursor.execute('SELECT cp FROM game WHERE id=? ORDER BY num', (user_id,))
+    cursor.execute('SELECT cp FROM game WHERE id=? AND ch=? ORDER BY num', (user_id, 1))
     cp_list = convert_list_tup_to_str(cursor.fetchall())
+    cursor.execute('SELECT cp FROM game WHERE id=? AND ch=? ORDER BY num', (user_id, 0))
+    no_cp_list = convert_list_tup_to_str(cursor.fetchall())
+
     conn.close()
-    return cp_count, cp_sum, cp_list
+    return cp_count, cp_sum, cp_list, no_cp_list
 
 # Функция записывает время финиша в БД
 def user_write_finish_time(user_id, finish_time):
@@ -123,12 +126,13 @@ def user_write_finish_time(user_id, finish_time):
 @bot.message_handler(commands=["finish"])
 def finish(message):
     user_id = message.from_user.id
-    cp_count, cp_sum, cp_list = user_result(user_id)
+    cp_count, cp_sum, cp_list, no_cp_list = user_result(user_id)
     finish_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
     #Записываем время финиша в БД
     user_write_finish_time(user_id, finish_time)
-    bot.send_message(message.chat.id, bot_messages.fin.format(cp_count, len(config.secret_dict), cp_list, cp_sum, finish_time,
-                                                              config.bot_message_org))
+    bot.send_message(message.chat.id, bot_messages.fin1.format(cp_count, len(config.secret_dict), cp_list, cp_sum) + '\n' +
+                     bot_messages.fin2.format(no_cp_list) + '\n' +
+                     bot_messages.fin3.format(finish_time, config.bot_message_org))
 
 # Функция, обрабатывающая отладочную команду /admin
 @bot.message_handler(commands=["admin"])
@@ -146,9 +150,9 @@ def admin(message):
             first_name = u[2]
             last_name = u[3]
             command_name = u[4]
-            cp_count, cp_sum, cp_list = user_result(user_id)
-            bot.send_message(message.chat.id, "id{}-{}\n{} {} {}\n{}/{} = {} = {}"
-                             .format(user_id, command_name, username, first_name, last_name, cp_count, len(config.secret_dict),cp_sum, cp_list))
+            cp_count, cp_sum, cp_list, no_cp_list = user_result(user_id)
+            bot.send_message(message.chat.id, "id{}-{}\n{} {} {}\n{}/{} = {}({}) = {}"
+                             .format(user_id, command_name, username, first_name, last_name, cp_count, len(config.secret_dict), cp_sum, cp_list, no_cp_list))
     else:
         bot.send_message(message.chat.id,bot_messages.admin_nodata)
 
@@ -169,8 +173,8 @@ def handle_text(message):
             # Проверка наличия взятого КП в базе
             conn = sqlite3.connect(config.db_filename)
             cursor = conn.cursor()
-            info = cursor.execute('SELECT * FROM game WHERE id=? AND cp=?',
-                                  (user_id, user_cp)).fetchone()
+            info = cursor.execute('SELECT * FROM game WHERE id=? AND cp=? AND ch=?',
+                                  (user_id, user_cp, 1)).fetchone()
             conn.close()
             if info is not None and len(info) > 0:
                 # КП уже есть в базе
@@ -208,8 +212,8 @@ def handle_text(message):
                     conn = sqlite3.connect(config.db_filename)
                     cursor = conn.cursor()
                     try:
-                        cursor.execute("INSERT INTO game (id, cp) VALUES (?, ?)",
-                                   (user_id, user_cp))
+                        cursor.execute("INSERT INTO game (id, cp, ch) VALUES (?, ?)",
+                                   (user_id, user_cp, 1))
                         conn.commit()
                     except sqlite3.IntegrityError:
                         # КП уже взят
