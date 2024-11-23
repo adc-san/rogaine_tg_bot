@@ -125,6 +125,12 @@ def user_write_finish_time(user_id, finish_time):
     except:
         pass
 
+# Количество КП в списке, кроме тестового
+def get_total_cp_count():
+    cp_count = len(config.secret_dict)
+    if cp_count > 0 and config.test_cp in config.secret_dict:
+        cp_count -= 1
+    return cp_count
 
 # Функция, обрабатывающая команду /finish
 @bot.message_handler(commands=["finish"])
@@ -134,7 +140,7 @@ def finish(message):
     finish_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
     # Записываем время финиша в БД
     user_write_finish_time(user_id, finish_time)
-    tmp_message = bot_messages.fin1.format(cp_count, len(config.secret_dict), cp_list, cp_sum)
+    tmp_message = bot_messages.fin1.format(cp_count, get_total_cp_count(), cp_list, cp_sum)
     if len(no_cp_list) > 0:
         tmp_message += '\n' + bot_messages.fin2.format(no_cp_list)
     tmp_message += '\n' + bot_messages.fin3.format(finish_time, config.bot_message_org)
@@ -162,7 +168,7 @@ def admin(message):
                 cp_count, cp_sum, cp_list, no_cp_list = user_result(user_id)
                 bot.send_message(message.chat.id, "id{}-{}\n{} {} {}\n{}/{} = {} = {}({})"
                                  .format(user_id, command_name, username, first_name, last_name, cp_count,
-                                         len(config.secret_dict), cp_sum, cp_list, no_cp_list))
+                                         get_total_cp_count(), cp_sum, cp_list, no_cp_list))
         else:
             bot.send_message(message.chat.id, bot_messages.admin_nodata)
 
