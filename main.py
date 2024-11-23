@@ -92,7 +92,8 @@ def start(message):
     first_name = message.from_user.first_name
     last_name = message.from_user.last_name
     bot.send_message(message.chat.id, bot_messages.start.format(first_name), reply_markup=make_reply_keyboard())
-    bot.send_message(message.chat.id, bot_messages.test)
+    if config.test_cp in config.secret_dict:
+        bot.send_message(message.chat.id, bot_messages.test)
     if save_user(user_id, username, first_name, last_name, command_name='') is not None:
         bot.send_message(message.chat.id, bot_messages.some_error)  # Неизвестная ошибка БД
 
@@ -179,7 +180,8 @@ def handle_text(message):
     if message.text == '🏁 Финиш 🏁':
         finish(message)
         return 0
-    user_text = message.text.strip()  # Убираем пробелы по краям
+    user_text_original = message.text  # Сохраняем исходное сообщение
+    user_text = user_text_original.lower().strip()  # Переводим в нижний регистр и убираем пробелы по краям
     user_id = message.from_user.id
 
     # Код КП - это число, а шифр - ВСЕГДА не число
@@ -209,11 +211,17 @@ def handle_text(message):
             user_cp = have_cp_list[user_id]
             cp_secret = config.secret_dict[user_cp].strip().lower()
             user_command_name = ''
+            cp_problem = False
             # Если тест в режиме запоминания названия команды
             if user_cp == config.test_cp and config.test_command_name_mode:
                 # Запоминаем имя команды и подставляем правильный шифр в качестве ответа
-                user_command_name, user_text = user_text, cp_secret
-            user_text = user_text.lower()  # Переводим в нижний регистр
+                user_command_name, user_text = user_text_original, cp_secret
+            # Если пользователь сообщил что точка сорвана
+            elif user_text in config.no_cp_words:
+                # Подставляем правильный шифр в качестве ответа
+                user_text = cp_secret
+                cp_problem = True
+
             # Если шифр совпадает
             if user_text == cp_secret:
                 # Тестовая точка
@@ -222,18 +230,25 @@ def handle_text(message):
                         tmp_message = bot_messages.true_answer.format(user_cp) + ' ' + bot_messages.command_name.format(
                             user_command_name) + ' ' + bot_messages.next_point
                     else:
-                        tmp_message = bot_messages.true_answer.format(user_cp) + ' ' + bot_messages.next_point
+                        if cp_problem:
+                            tmp_message = bot_messages.cp_problem_check.format(user_cp) + ' ' + bot_messages.next_point
+                        else:
+                            tmp_message = bot_messages.true_answer.format(user_cp) + ' ' + bot_messages.next_point
                     # Сохранение пользователя при взятии тестовой точки
                     if save_user(user_id, message.from_user.username, message.from_user.first_name,
                                  message.from_user.last_name, user_command_name) is not None:
                         tmp_message += bot_messages.some_error
                 else:
                     # Сохранение информации о КП в базу данных
+                    if cp_problem:
+                        user_ch = 0
+                    else:
+                        user_ch = 1
                     conn = sqlite3.connect(config.db_filename)
                     cursor = conn.cursor()
                     try:
                         cursor.execute("INSERT INTO game (id, cp, ch) VALUES (?, ?, ?)",
-                                       (user_id, user_cp, 1))
+                                       (user_id, user_cp, user_ch))
                         conn.commit()
                     except sqlite3.IntegrityError:
                         # КП уже взят
@@ -242,7 +257,10 @@ def handle_text(message):
                         # Неизвестная ошибка БД
                         tmp_message = bot_messages.some_error
                     else:
-                        tmp_message = bot_messages.true_answer.format(user_cp)
+                        if cp_problem:
+                            tmp_message = bot_messages.cp_problem_check.format(user_cp)
+                        else:
+                            tmp_message = bot_messages.true_answer.format(user_cp)
                         if user_cp == config.fin_cp:
                             tmp_message += '\n' + bot_messages.in_finish
                         else:
