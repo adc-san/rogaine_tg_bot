@@ -158,7 +158,7 @@ def handle_text(message):
             conn.close()
             if info is not None and len(info) > 0:
                 # КП уже есть в базе
-                bot.send_message(message.chat.id, bot_messages.have_cp.format(user_cp) + message.chat.id, bot_messages.next_point)
+                bot.send_message(message.chat.id, bot_messages.have_cp.format(user_cp) + bot_messages.next_point)
             else:
                 # КП ещё не взят
                 have_cp_list.update({user_id: user_cp})
