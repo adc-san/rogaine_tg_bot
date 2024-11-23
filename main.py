@@ -232,5 +232,5 @@ print('----------------------------')
 # Создаем таблицы для хранения данных
 create_tables()
 
-# Запускаем бота - бесконечный цикл опроса
-bot.polling(none_stop=True, interval=0)
+# Запускаем бота - бесконечный цикл опроса. Используем infinity_polling, чтобы при проблемах со связью бот не падал
+bot.infinity_polling(none_stop=True, interval=0)
