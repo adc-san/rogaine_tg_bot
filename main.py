@@ -68,7 +68,7 @@ def save_user(user_id, username, first_name, last_name, command_name):
                        (user_id, username, first_name, last_name, command_name))
         conn.commit()
     except sqlite3.IntegrityError:
-        # Пользователь уже есть в БД
+        # Пользователь уже есть в БД.
         # Сохраняем только имя команды, если оно передано
         if len(command_name) > 0:
             try:
