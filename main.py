@@ -6,7 +6,6 @@ from datetime import datetime
 import config
 import bot_messages
 
-
 # Версия релиза
 version = '0.6  '
 # Фиксируем время запуска
@@ -58,6 +57,7 @@ def make_reply_keyboard():
     markup.add(btn1)
     return markup
 
+
 def save_user(user_id, username, first_name, last_name, command_name):
     # Сохранение информации о пользователе в базу данных
     conn = sqlite3.connect(config.db_filename)
@@ -73,7 +73,7 @@ def save_user(user_id, username, first_name, last_name, command_name):
         if len(command_name) > 0:
             try:
                 cursor.execute("UPDATE users SET command_name=? WHERE id=?",
-                              (command_name, user_id))
+                               (command_name, user_id))
                 conn.commit()
             except:
                 tmp_message = bot_messages.some_error
@@ -82,6 +82,7 @@ def save_user(user_id, username, first_name, last_name, command_name):
     finally:
         conn.close()
     return tmp_message
+
 
 # Функция, обрабатывающая команду /start
 @bot.message_handler(commands=["start"])
@@ -94,6 +95,7 @@ def start(message):
     bot.send_message(message.chat.id, bot_messages.test)
     if save_user(user_id, username, first_name, last_name, command_name='') is not None:
         bot.send_message(message.chat.id, bot_messages.some_error)  # Неизвестная ошибка БД
+
 
 # Вычисление результатов участника в базе
 def user_result(user_id):
@@ -111,16 +113,18 @@ def user_result(user_id):
     conn.close()
     return cp_count, cp_sum, cp_list, no_cp_list
 
+
 # Функция записывает время финиша в БД
 def user_write_finish_time(user_id, finish_time):
     conn = sqlite3.connect(config.db_filename)
     cursor = conn.cursor()
     try:
         cursor.execute("UPDATE users SET finish_time=? WHERE id=?",
-                        (finish_time, user_id))
+                       (finish_time, user_id))
         conn.commit()
     except:
         pass
+
 
 # Функция, обрабатывающая команду /finish
 @bot.message_handler(commands=["finish"])
@@ -128,13 +132,14 @@ def finish(message):
     user_id = message.from_user.id
     cp_count, cp_sum, cp_list, no_cp_list = user_result(user_id)
     finish_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
-    #Записываем время финиша в БД
+    # Записываем время финиша в БД
     user_write_finish_time(user_id, finish_time)
     tmp_message = bot_messages.fin1.format(cp_count, len(config.secret_dict), cp_list, cp_sum)
     if len(no_cp_list) > 0:
         tmp_message += '\n' + bot_messages.fin2.format(no_cp_list)
     tmp_message += '\n' + bot_messages.fin3.format(finish_time, config.bot_message_org)
     bot.send_message(message.chat.id, tmp_message)
+
 
 # Функция, обрабатывающая отладочную команду /admin
 @bot.message_handler(commands=["admin"])
@@ -156,9 +161,11 @@ def admin(message):
                 command_name = u[4]
                 cp_count, cp_sum, cp_list, no_cp_list = user_result(user_id)
                 bot.send_message(message.chat.id, "id{}-{}\n{} {} {}\n{}/{} = {} = {}({})"
-                                 .format(user_id, command_name, username, first_name, last_name, cp_count, len(config.secret_dict), cp_sum, cp_list, no_cp_list))
+                                 .format(user_id, command_name, username, first_name, last_name, cp_count,
+                                         len(config.secret_dict), cp_sum, cp_list, no_cp_list))
         else:
-            bot.send_message(message.chat.id,bot_messages.admin_nodata)
+            bot.send_message(message.chat.id, bot_messages.admin_nodata)
+
 
 # Получение сообщений от юзера
 @bot.message_handler(content_types=["text"])
@@ -182,11 +189,12 @@ def handle_text(message):
             conn.close()
             if info is not None and len(info) > 0:
                 # КП уже есть в базе
-                bot.send_message(message.chat.id, bot_messages.have_cp.format(user_cp) +' '+ bot_messages.next_point)
+                bot.send_message(message.chat.id, bot_messages.have_cp.format(user_cp) + ' ' + bot_messages.next_point)
             else:
                 # КП ещё не взят
                 have_cp_list.update({user_id: user_cp})
-                bot.send_message(message.chat.id, bot_messages.answer.format(user_cp), reply_markup=make_reply_keyboard())
+                bot.send_message(message.chat.id, bot_messages.answer.format(user_cp),
+                                 reply_markup=make_reply_keyboard())
         else:
             # КП нет на карте
             bot.send_message(message.chat.id, bot_messages.no_point)
@@ -199,17 +207,19 @@ def handle_text(message):
             if user_cp == config.test_cp and config.test_command_name_mode:
                 # Запоминаем имя команды и подставляем правильный шифр в качестве ответа
                 user_command_name, user_text = user_text, cp_secret
-            user_text = user_text.lower() # Переводим в нижний регистр
+            user_text = user_text.lower()  # Переводим в нижний регистр
             # Если шифр совпадает
             if user_text == cp_secret:
                 # Тестовая точка
                 if user_cp == config.test_cp:
                     if config.test_command_name_mode:
-                        tmp_message = bot_messages.true_answer.format(user_cp) + ' ' + bot_messages.command_name.format(user_command_name) + ' ' + bot_messages.next_point
+                        tmp_message = bot_messages.true_answer.format(user_cp) + ' ' + bot_messages.command_name.format(
+                            user_command_name) + ' ' + bot_messages.next_point
                     else:
                         tmp_message = bot_messages.true_answer.format(user_cp) + ' ' + bot_messages.next_point
                     # Сохранение пользователя при взятии тестовой точки
-                    if save_user(user_id, message.from_user.username, message.from_user.first_name, message.from_user.last_name, user_command_name) is not None:
+                    if save_user(user_id, message.from_user.username, message.from_user.first_name,
+                                 message.from_user.last_name, user_command_name) is not None:
                         tmp_message += bot_messages.some_error
                 else:
                     # Сохранение информации о КП в базу данных
@@ -217,7 +227,7 @@ def handle_text(message):
                     cursor = conn.cursor()
                     try:
                         cursor.execute("INSERT INTO game (id, cp, ch) VALUES (?, ?, ?)",
-                                   (user_id, user_cp, 1))
+                                       (user_id, user_cp, 1))
                         conn.commit()
                     except sqlite3.IntegrityError:
                         # КП уже взят
