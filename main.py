@@ -46,7 +46,7 @@ def create_tables():
                    num INTEGER PRIMARY KEY AUTOINCREMENT,
                    id INTEGER,
                    cp INTEGER,
-                   check INTEGER,
+                   ch INTEGER,
                    UNIQUE(id, cp)
                    )''')
     conn.close()
