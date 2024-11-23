@@ -130,9 +130,10 @@ def admin(message):
             username = u[1]
             first_name = u[2]
             last_name = u[3]
+            command_name = u[4]
             cp_count, cp_sum, cp_list = user_result(user_id)
-            bot.send_message(message.chat.id, "id{}-{}\n{} {}\n{}/{} = {} = {}"
-                             .format(user_id, username, first_name, last_name, cp_count, len(config.secret_dict),cp_sum, cp_list))
+            bot.send_message(message.chat.id, "id{}-{}\n{} {} {}\n{}/{} = {} = {}"
+                             .format(user_id, command_name, username, first_name, last_name, cp_count, len(config.secret_dict),cp_sum, cp_list))
     else:
         bot.send_message(message.chat.id,bot_messages.admin_nodata)
 
