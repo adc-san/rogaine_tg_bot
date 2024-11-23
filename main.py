@@ -8,7 +8,7 @@ import bot_messages
 
 
 # Версия релиза
-version = '0.4  '
+version = '0.5  '
 # Фиксируем время запуска
 start_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
 
@@ -38,13 +38,15 @@ def create_tables():
                    username TEXT,
                    first_name TEXT,
                    last_name TEXT,
-                   command_name TEXT
+                   command_name TEXT,
+                   finish_time TEXT,
                   )''')
 
     cursor.execute('''CREATE TABLE IF NOT EXISTS game (
                    num INTEGER PRIMARY KEY AUTOINCREMENT,
                    id INTEGER,
                    cp INTEGER,
+                   cheсk INTEGER,
                    UNIQUE(id, cp)
                    )''')
     conn.close()
