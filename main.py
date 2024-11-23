@@ -8,7 +8,7 @@ import bot_messages
 
 
 # Версия релиза
-version = '0.5  '
+version = '0.6  '
 # Фиксируем время запуска
 start_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
 
@@ -46,7 +46,7 @@ def create_tables():
                    num INTEGER PRIMARY KEY AUTOINCREMENT,
                    id INTEGER,
                    cp INTEGER,
-                   cheсk INTEGER,
+                   check INTEGER,
                    UNIQUE(id, cp)
                    )''')
     conn.close()
