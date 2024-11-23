@@ -39,7 +39,7 @@ def create_tables():
                    first_name TEXT,
                    last_name TEXT,
                    command_name TEXT,
-                   finish_time TEXT,
+                   finish_time TEXT
                   )''')
 
     cursor.execute('''CREATE TABLE IF NOT EXISTS game (
