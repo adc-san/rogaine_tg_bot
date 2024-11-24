@@ -2,6 +2,8 @@
 bot_token = 'Поместите сюда токен вашего бота'
 # Имя файла с БД 
 db_filename = 'rogaine_tg_bot_data.db'
+# Имя файла с результатами
+results_filename = 'results.txt'
 # Контакт организатора
 bot_message_org = '@IvanovIvanIvanovich'
 # Словарь КП и шифров на дистанции
