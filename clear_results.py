@@ -15,6 +15,6 @@ print('Do you really want to delete all results? Type "yes" and press Enter.')
 s = input()
 if s.strip().lower() == 'yes':
     drop_game_table()
-    print('Results were cleared. Press Enter to exit.');
+    print('Results were cleared. Press Enter to exit.')
     s = input()
-print('Goodbye.');
+print('Goodbye.')
