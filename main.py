@@ -4,7 +4,7 @@ from datetime import datetime
 
 import config
 import bot_messages
-from bot_utils import *
+import bot_utils
 
 # Версия релиза
 version = '0.6  '
@@ -24,24 +24,24 @@ def start(message):
     username = message.from_user.username
     first_name = message.from_user.first_name
     last_name = message.from_user.last_name
-    bot.send_message(message.chat.id, bot_messages.start.format(first_name), reply_markup=make_reply_keyboard())
+    bot.send_message(message.chat.id, bot_messages.start.format(first_name), reply_markup=bot_utils.make_reply_keyboard())
     if config.test_cp in config.secret_dict:
         bot.send_message(message.chat.id, bot_messages.test)
-    if save_user(user_id, username, first_name, last_name, command_name='') is not None:
+    if bot_utils.save_user(user_id, username, first_name, last_name, command_name='') is not None:
         bot.send_message(message.chat.id, bot_messages.some_error)  # Неизвестная ошибка БД
 
 # Функция, обрабатывающая команду /finish
 @bot.message_handler(commands=["finish"])
 def finish(message):
     user_id = message.from_user.id
-    cp_count, cp_sum, cp_list, no_cp_list = user_result(user_id)
+    cp_count, cp_sum, cp_list, no_cp_list = bot_utils.user_result(user_id)
     finish_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
     #Добавляем пробелы для вывода списка КП
     cp_list = ', '.join(cp_list.split(sep=','))
     no_cp_list = ', '.join(no_cp_list.split(sep=','))
     # Записываем время финиша в БД
-    user_write_finish_time(user_id, finish_time)
-    tmp_message = bot_messages.fin1.format(cp_count, get_total_cp_count(), cp_list, cp_sum)
+    bot_utils.user_write_finish_time(user_id, finish_time)
+    tmp_message = bot_messages.fin1.format(cp_count, bot_utils.get_total_cp_count(), cp_list, cp_sum)
     if len(no_cp_list) > 0:
         tmp_message += '\n' + bot_messages.fin2.format(no_cp_list)
     tmp_message += '\n' + bot_messages.fin3.format(finish_time, config.bot_message_org)
@@ -66,12 +66,12 @@ def admin(message):
                 first_name = u[2]
                 last_name = u[3]
                 command_name = u[4]
-                cp_count, cp_sum, cp_list, no_cp_list = user_result(user_id)
+                cp_count, cp_sum, cp_list, no_cp_list = bot_utils.user_result(user_id)
                 cp_list = ', '.join(cp_list.split(sep=','))
                 no_cp_list = ', '.join(no_cp_list.split(sep=','))
                 bot.send_message(message.chat.id, "id{}-{}\n{} {} {}\n{}/{} = {} = {}({})"
                                  .format(user_id, command_name, username, first_name, last_name, cp_count,
-                                         get_total_cp_count(), cp_sum, cp_list, no_cp_list))
+                                         bot_utils.get_total_cp_count(), cp_sum, cp_list, no_cp_list))
         else:
             bot.send_message(message.chat.id, bot_messages.admin_nodata)
 
@@ -104,7 +104,7 @@ def handle_text(message):
                 # КП ещё не взят
                 have_cp_list.update({user_id: user_cp})
                 bot.send_message(message.chat.id, bot_messages.answer.format(user_cp),
-                                 reply_markup=make_reply_keyboard())
+                                 reply_markup=bot_utils.make_reply_keyboard())
         else:
             # КП нет на карте
             bot.send_message(message.chat.id, bot_messages.no_point)
@@ -137,8 +137,8 @@ def handle_text(message):
                         else:
                             tmp_message = bot_messages.true_answer.format(user_cp) + ' ' + bot_messages.next_point
                     # Сохранение пользователя при взятии тестовой точки
-                    if save_user(user_id, message.from_user.username, message.from_user.first_name,
-                                 message.from_user.last_name, user_command_name) is not None:
+                    if bot_utils.save_user(user_id, message.from_user.username, message.from_user.first_name,
+                                           message.from_user.last_name, user_command_name) is not None:
                         tmp_message += bot_messages.some_error
                 else:
                     # Сохранение информации о КП в базу данных
@@ -204,7 +204,7 @@ print(f'-  {start_time}   -')
 print('----------------------------')
 
 # Создаем таблицы для хранения данных
-create_tables()
+bot_utils.create_tables()
 
 # Запускаем бота - бесконечный цикл опроса. Используем infinity_polling, чтобы при проблемах со связью бот не падал
 bot.infinity_polling(none_stop=True, interval=0)
