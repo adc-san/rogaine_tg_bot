@@ -1,4 +1,5 @@
 import sqlite3
+from telebot import types  # для указания типов
 import config
 import bot_messages
 
