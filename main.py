@@ -252,7 +252,21 @@ def handle_text(message):
                         conn.commit()
                     except sqlite3.IntegrityError:
                         # КП уже взят
-                        tmp_message = bot_messages.true_dub.format(user_cp)
+                        if cp_problem:
+                            tmp_message = bot_messages.true_dub.format(user_cp)
+                        else:
+                            # Помечаем КП взятым, на случай если он ранее помечен сорванным
+                            try:
+                                cursor.execute("UPDATE game SET ch=? WHERE id=? AND cp=?",
+                                               (user_ch, user_id, user_cp))
+                                conn.commit()
+                            except:
+                                tmp_message = bot_messages.some_error
+                            else:
+                                tmp_message = bot_messages.true_answer.format(user_cp)
+                                tmp_message += '\n' + bot_messages.next_point
+
+
                     except:
                         # Неизвестная ошибка БД
                         tmp_message = bot_messages.some_error
