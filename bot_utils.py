@@ -7,8 +7,8 @@ import bot_messages
 def convert_list_tup_to_str(list_tup):
     s = ''
     for tup in list_tup:
-        s += str(tup[0]) + ', '
-    return s.rstrip().rstrip(',')
+        s += str(tup[0]) + ','
+    return s.rstrip(',')
 
 def create_tables():
     # Создание или подключение к базе данных SQLite

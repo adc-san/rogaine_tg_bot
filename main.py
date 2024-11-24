@@ -36,6 +36,9 @@ def finish(message):
     user_id = message.from_user.id
     cp_count, cp_sum, cp_list, no_cp_list = user_result(user_id)
     finish_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
+    #Добавляем пробелы для вывода списка КП
+    cp_list = ', '.join(cp_list.split(sep=','))
+    no_cp_list = ', '.join(no_cp_list.split(sep=','))
     # Записываем время финиша в БД
     user_write_finish_time(user_id, finish_time)
     tmp_message = bot_messages.fin1.format(cp_count, get_total_cp_count(), cp_list, cp_sum)
@@ -64,6 +67,8 @@ def admin(message):
                 last_name = u[3]
                 command_name = u[4]
                 cp_count, cp_sum, cp_list, no_cp_list = user_result(user_id)
+                cp_list = ', '.join(cp_list.split(sep=','))
+                no_cp_list = ', '.join(no_cp_list.split(sep=','))
                 bot.send_message(message.chat.id, "id{}-{}\n{} {} {}\n{}/{} = {} = {}({})"
                                  .format(user_id, command_name, username, first_name, last_name, cp_count,
                                          get_total_cp_count(), cp_sum, cp_list, no_cp_list))
