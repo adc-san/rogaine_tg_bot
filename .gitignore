@@ -1,5 +1,6 @@
 /config.py
 *.pyc
-/rogaine_tg_bot_data.db
+*.db
+*.csv
 /venv
 /.idea
