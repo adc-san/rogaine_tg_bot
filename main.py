@@ -155,7 +155,7 @@ def handle_text(message):
                     except sqlite3.IntegrityError:
                         # КП уже взят
                         if cp_problem:
-                            tmp_message = bot_messages.true_dub.format(user_cp)
+                            tmp_message = bot_messages.dub.format(user_cp)
                         else:
                             # Помечаем КП взятым, на случай если он ранее помечен сорванным
                             try:
