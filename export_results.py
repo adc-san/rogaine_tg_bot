@@ -7,7 +7,7 @@ import config
 
 # Функция, обрабатывающая отладочную команду /admin
 def save_to_csv():
-    with open('results.csv', 'w', newline='') as csvfile:
+    with open(config.results_filename, 'w', newline='') as csvfile:
         results_writer = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         conn = sqlite3.connect(config.db_filename)
         cursor = conn.cursor()
