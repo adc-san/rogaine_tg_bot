@@ -15,7 +15,7 @@ def save_to_csv():
         user_list = cursor.fetchall()
         conn.close()
         if len(user_list) > 0:
-            results_writer.writerow(['Name', 'User', 'Fin time', 'Problems'] + ['CP'] * bot_utils.get_total_cp_count())
+            results_writer.writerow(['Name', 'User', 'Problems','Fin time'] + ['CP'] * bot_utils.get_total_cp_count())
             for u in user_list:
                 user_id = u[0]
                 username = u[1]
