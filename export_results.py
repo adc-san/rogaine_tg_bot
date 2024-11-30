@@ -27,7 +27,7 @@ def save_to_csv():
                 cp_count, cp_sum, cp_list, no_cp_list, all_cp_list = bot_utils.user_result(user_id)
                 # Записываем строку результатов в CSV, убрав запятые из данных
                 results_writer.writerow([command_name.replace(',','.'), user_str.replace(',','.')] +
-                                        ';'.join(no_cp_list.split(sep=',')).split(sep=' ') + [fin_time,] + cp_list.split(sep=','))
+                                        ';'.join(no_cp_list.split(sep=',')).split(sep=' ') + [fin_time,] + all_cp_list.split(sep=','))
 
 print('I will save your results to {} ...'.format(config.results_filename))
 save_to_csv()

@@ -71,7 +71,7 @@ def admin(message):
                 cp_count, cp_sum, cp_list, no_cp_list, all_cp_list = bot_utils.user_result(user_id) 
                 tmp_part_msg = "<b>{}</b> @{} {} {} id{}\n{}/{}=<b>{}</b>={}({}) {}\n\n".format(
                     command_name or '', username or '', first_name or '', last_name or '', user_id, cp_count, bot_utils.get_total_cp_count(),
-                    cp_sum, cp_list, no_cp_list, fin_time or '')
+                    cp_sum, all_cp_list, no_cp_list, fin_time or '')
                 # Разрываем сообщение, чтобы уложиться в ограничение ТГ в 4095 символов
                 if len(tmp_msg) + len(tmp_part_msg)> 4095:
                     bot.send_message(message.chat.id,tmp_msg, parse_mode='HTML')

@@ -93,6 +93,15 @@ def user_result(user_id):
     cp_list = cp_list.rstrip(',')
     no_cp_list = no_cp_list.rstrip(',')
     all_cp_list = all_cp_list.rstrip(',')
+    # Сорванные КП выделяем символами '_'
+    if len(all_cp_list) > 0:
+        tmp_list = list()
+        for cp in all_cp_list.split(','):
+            if cp in no_cp_list:
+                tmp_list.append(f'_{cp}_')
+            else:
+                tmp_list.append(cp)   
+            all_cp_list = ','.join(tmp_list)
     return cp_count, cp_sum, cp_list, no_cp_list, all_cp_list
 
 
