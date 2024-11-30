@@ -23,7 +23,7 @@ def save_to_csv():
                 last_name = u[3]
                 command_name = u[4]
                 fin_time = u[5]
-                user_str = first_name + ' ' + last_name + ' @' + username + ' ' + '(id' + str(user_id) + ')'
+                user_str = '{} {} @{} (id{})'.format(first_name, last_name, username, str(user_id))
                 cp_count, cp_sum, cp_list, no_cp_list = bot_utils.user_result(user_id)
                 results_writer.writerow([command_name, user_str, fin_time] + ';'.join(no_cp_list.split(sep=',')).split(
                     sep=' ') + cp_list.split(sep=','))
