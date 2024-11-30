@@ -68,9 +68,7 @@ def admin(message):
                 last_name = u[3]
                 command_name = u[4]
                 fin_time = u[5]
-                cp_count, cp_sum, cp_list, no_cp_list, all_cp_list = bot_utils.user_result(user_id)
-
-                
+                cp_count, cp_sum, cp_list, no_cp_list, all_cp_list = bot_utils.user_result(user_id) 
                 tmp_part_msg = "<b>{}</b> @{} {} {} id{}\n{}/{}=<b>{}</b>={}({}) {}\n\n".format(
                     command_name or '', username or '', first_name or '', last_name or '', user_id, cp_count, bot_utils.get_total_cp_count(),
                     cp_sum, cp_list, no_cp_list, fin_time or '')
@@ -82,7 +80,6 @@ def admin(message):
                     tmp_msg += tmp_part_msg
         else:
             tmp_msg = bot_messages.admin_nodata
-    else:      
         bot.send_message(message.chat.id,tmp_msg, parse_mode='HTML')
 
 # Получение сообщений от юзера
