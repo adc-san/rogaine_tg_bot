@@ -79,7 +79,7 @@ def admin(message):
 # Получение сообщений от юзера
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
-    if message.text == '🏁 Финиш 🏁':
+    if message.text == bot_utils.get_fin_button():
         finish(message)
         return 0
     user_text_original = message.text  # Сохраняем исходное сообщение

@@ -34,10 +34,12 @@ def create_tables():
                    )''')
     conn.close()
 
+def get_fin_button():
+    return '🏁 Финиш 🏁'
 
 def make_reply_keyboard():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton("🏁 Финиш 🏁")
+    btn1 = types.KeyboardButton(get_fin_button())
     markup.add(btn1)
     return markup
 
