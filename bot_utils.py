@@ -8,13 +8,6 @@ def normalize_string(s):
     s = s.strip().lower().replace('ё','е').replace('й','и')
     return s
 
-# Конвертирует список кортежей в строку с разделителями ', '
-def convert_list_tup_to_str(list_tup):
-    s = ''
-    for tup in list_tup:
-        s += str(tup[0]) + ','
-    return s.rstrip(',')
-
 def create_tables():
     # Создание или подключение к базе данных SQLite
     conn = sqlite3.connect(config.db_filename)
@@ -73,22 +66,34 @@ def save_user(user_id, username, first_name, last_name, command_name):
         conn.close()
     return tmp_message
 
-
 # Вычисление результатов участника в базе
 def user_result(user_id):
     conn = sqlite3.connect(config.db_filename)
     cursor = conn.cursor()
-    cursor.execute('SELECT SUM(cp / 10) FROM game WHERE id=? AND ch=? ', (user_id, 1))
-    cp_sum = cursor.fetchone()[0]
-    cursor.execute('SELECT COUNT(cp) FROM game WHERE id=? AND ch=? ', (user_id, 1))
-    cp_count = cursor.fetchone()[0]
-    cursor.execute('SELECT cp FROM game WHERE id=? AND ch=? ORDER BY num', (user_id, 1))
-    cp_list = convert_list_tup_to_str(cursor.fetchall())
-    cursor.execute('SELECT cp FROM game WHERE id=? AND ch=? ORDER BY num', (user_id, 0))
-    no_cp_list = convert_list_tup_to_str(cursor.fetchall())
-
+    cursor.execute('SELECT cp,ch FROM game WHERE id=? ORDER BY num', (user_id,))
+    tmp_list = cursor.fetchall()
+    # Разбираем список КП пользователя
+    all_cp_list = ''
+    cp_list = ''
+    cp_count = 0
+    cp_sum = 0
+    no_cp_list = ''
+    for tup in tmp_list:
+        # Если КП сорван
+        if tup[1] == 0:
+            all_cp_list += str(tup[0]) + ','
+            no_cp_list += str(tup[0]) + ','         
+        # Если КП взят 
+        elif tup[1] == 1:
+            all_cp_list += str(tup[0]) + ','
+            cp_list += str(tup[0]) + ','
+            cp_count += 1
+            cp_sum += tup[0] // 10
+    cp_list = cp_list.rstrip(',')
+    no_cp_list = no_cp_list.rstrip(',')
+    all_cp_list = all_cp_list.rstrip(',')
     conn.close()
-    return cp_count, cp_sum, cp_list, no_cp_list
+    return cp_count, cp_sum, cp_list, no_cp_list, all_cp_list
 
 
 # Функция записывает время финиша в БД

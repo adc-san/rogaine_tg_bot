@@ -34,7 +34,7 @@ def start(message):
 @bot.message_handler(commands=["finish"])
 def finish(message):
     user_id = message.from_user.id
-    cp_count, cp_sum, cp_list, no_cp_list = bot_utils.user_result(user_id)
+    cp_count, cp_sum, cp_list, no_cp_list, all_cp_list  = bot_utils.user_result(user_id)
     finish_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
     #Добавляем пробелы для вывода списка КП
     cp_list = ', '.join(cp_list.split(sep=','))
@@ -59,6 +59,7 @@ def admin(message):
         cursor.execute('SELECT * FROM users')
         user_list = cursor.fetchall()
         conn.close()
+        tmp_msg = ''
         if len(user_list) > 0:
             for u in user_list:
                 user_id = u[0]
@@ -67,15 +68,22 @@ def admin(message):
                 last_name = u[3]
                 command_name = u[4]
                 fin_time = u[5]
-                cp_count, cp_sum, cp_list, no_cp_list = bot_utils.user_result(user_id)
-                cp_list = ', '.join(cp_list.split(sep=','))
-                no_cp_list = ', '.join(no_cp_list.split(sep=','))
-                bot.send_message(message.chat.id, "{} @{} {} {} id{}\n{}/{} = {} = {}({}) {}"
-                                 .format(command_name or '', username or '', first_name or '', last_name or '', user_id, cp_count,
-                                         bot_utils.get_total_cp_count(), cp_sum, cp_list, no_cp_list, fin_time or ''))
-        else:
-            bot.send_message(message.chat.id, bot_messages.admin_nodata)
+                cp_count, cp_sum, cp_list, no_cp_list, all_cp_list = bot_utils.user_result(user_id)
 
+                
+                tmp_part_msg = "<b>{}</b> @{} {} {} id{}\n{}/{}=<b>{}</b>={}({}) {}\n\n".format(
+                    command_name or '', username or '', first_name or '', last_name or '', user_id, cp_count, bot_utils.get_total_cp_count(),
+                    cp_sum, cp_list, no_cp_list, fin_time or '')
+                # Разрываем сообщение, чтобы уложиться в ограничение ТГ в 4095 символов
+                if len(tmp_msg) + len(tmp_part_msg)> 4095:
+                    bot.send_message(message.chat.id,tmp_msg, parse_mode='HTML')
+                    tmp_msg = tmp_part_msg
+                else:
+                    tmp_msg += tmp_part_msg
+        else:
+            tmp_msg = bot_messages.admin_nodata
+    else:      
+        bot.send_message(message.chat.id,tmp_msg, parse_mode='HTML')
 
 # Получение сообщений от юзера
 @bot.message_handler(content_types=["text"])
