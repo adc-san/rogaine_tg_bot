@@ -7,7 +7,7 @@ import bot_messages
 import bot_utils
 
 # Версия релиза
-version = '0.6  '
+version = '0.7  '
 # Фиксируем время запуска
 start_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
 
@@ -103,8 +103,7 @@ def handle_text(message):
             else:
                 # КП ещё не взят
                 have_cp_list.update({user_id: user_cp})
-                bot.send_message(message.chat.id, bot_messages.answer.format(user_cp),
-                                 reply_markup=bot_utils.make_reply_keyboard())
+                bot.send_message(message.chat.id, bot_messages.answer.format(user_cp))
         else:
             # КП нет на карте
             bot.send_message(message.chat.id, bot_messages.no_point)
