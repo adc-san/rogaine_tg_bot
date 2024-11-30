@@ -72,6 +72,7 @@ def user_result(user_id):
     cursor = conn.cursor()
     cursor.execute('SELECT cp,ch FROM game WHERE id=? ORDER BY num', (user_id,))
     tmp_list = cursor.fetchall()
+    conn.close()
     # Разбираем список КП пользователя
     all_cp_list = ''
     cp_list = ''
@@ -92,7 +93,6 @@ def user_result(user_id):
     cp_list = cp_list.rstrip(',')
     no_cp_list = no_cp_list.rstrip(',')
     all_cp_list = all_cp_list.rstrip(',')
-    conn.close()
     return cp_count, cp_sum, cp_list, no_cp_list, all_cp_list
 
 
