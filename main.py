@@ -48,9 +48,8 @@ def finish(message):
     bot.send_message(message.chat.id, tmp_message)
 
 
-# Функция, обрабатывающая отладочную команду /admin
-@bot.message_handler(commands=["admin"])
-def admin(message):
+# Функция, обрабатывающая вывод результатов для админитратора
+def admin_result_msg(message, short):
     user_id = message.from_user.id
     bot.send_message(message.chat.id, f'{start_time} v{version}')
     if user_id in config.admin_id:
@@ -69,10 +68,22 @@ def admin(message):
                 command_name = u[4]
                 fin_time = u[5]
                 cp_count, cp_sum, cp_list, no_cp_list, all_cp_list = bot_utils.user_result(user_id)
-                tmp_str = f"\n{cp_count}/{bot_utils.get_total_cp_count()}=<b>{cp_sum}</b>={all_cp_list}<b>({no_cp_list})</b>"
-                if(cp_count == 0):
-                    tmp_str = ''
-                tmp_part_msg = f"<b>{command_name or ''}</b> {fin_time or ''} @{username or ''} {first_name or ''} {last_name or ''} id{user_id}{tmp_str}\n\n"
+                # Сокращённый режим вывода
+                if short:
+                    if fin_time and len(fin_time) > 8:
+                        fin_time = fin_time[0:8]
+                    tmp_str1 = f"<b>{command_name or ''}</b> {fin_time or ''}"
+                    tmp_str2 = f"\n{cp_count}/{bot_utils.get_total_cp_count()}=<b>{cp_sum}</b>={all_cp_list}<b>({no_cp_list})</b>\n\n"
+                    if(cp_count == 0):
+                        tmp_str1 = ''
+                        tmp_str2 = ''
+                # Полный вывод
+                else:
+                    tmp_str1 = f"<b>{command_name or ''}</b> {fin_time or ''} @{username or ''} {first_name or ''} {last_name or ''} id{user_id}"
+                    tmp_str2 = f"\n{cp_count}/{bot_utils.get_total_cp_count()}=<b>{cp_sum}</b>={all_cp_list}<b>({no_cp_list})</b>\n\n"
+                    if(cp_count == 0):
+                        tmp_str2 = ''
+                tmp_part_msg = f"{tmp_str1}{tmp_str2}"
                 # Разрываем сообщение, чтобы уложиться в ограничение ТГ в 4095 символов
                 if len(tmp_msg) + len(tmp_part_msg)> 4095:
                     bot.send_message(message.chat.id,tmp_msg, parse_mode='HTML')
@@ -82,6 +93,15 @@ def admin(message):
         else:
             tmp_msg = bot_messages.admin_nodata
         bot.send_message(message.chat.id,tmp_msg, parse_mode='HTML')
+
+# Функция, обрабатывающая команду /admin
+@bot.message_handler(commands=["admin"])
+def admin(message):
+    admin_result_msg(message, short=False)
+# Функция, обрабатывающая команду /a
+@bot.message_handler(commands=["a"])
+def a(message):
+    admin_result_msg(message, short=True)
 
 # Получение сообщений от юзера
 @bot.message_handler(content_types=["text"])
