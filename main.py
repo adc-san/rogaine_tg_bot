@@ -84,7 +84,7 @@ def handle_text(message):
         finish(message)
         return 0
     user_text_original = message.text  # Сохраняем исходное сообщение
-    user_text = user_text_original.lower().strip()  # Переводим в нижний регистр и убираем пробелы по краям
+    user_text = bot_utils.normalize_string(user_text_original)  # Переводим в нижний регистр и убираем пробелы по краям и заменяем похожие буквы
     user_id = message.from_user.id
 
     # Код КП - это число, а шифр - ВСЕГДА не число
@@ -111,15 +111,18 @@ def handle_text(message):
     else:
         if user_id in have_cp_list:
             user_cp = have_cp_list[user_id]
-            cp_secret = config.secret_dict[user_cp].strip().lower()
+            cp_secret = bot_utils.normalize_string(config.secret_dict[user_cp])
             user_command_name = ''
             cp_problem = False
+            tmp_problem_cp_words = tuple()
+            for t in config.no_cp_words:
+                tmp_problem_cp_words += (bot_utils.normalize_string(t),)
             # Если тест в режиме запоминания названия команды
             if user_cp == config.test_cp and config.test_command_name_mode:
                 # Запоминаем имя команды и подставляем правильный шифр в качестве ответа
                 user_command_name, user_text = user_text_original, cp_secret
             # Если пользователь сообщил что точка сорвана
-            elif user_text in config.no_cp_words:
+            elif user_text in tmp_problem_cp_words:
                 # Подставляем правильный шифр в качестве ответа
                 user_text = cp_secret
                 cp_problem = True

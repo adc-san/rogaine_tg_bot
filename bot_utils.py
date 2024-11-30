@@ -3,6 +3,11 @@ from telebot import types  # для указания типов
 import config
 import bot_messages
 
+# Переводим в нижний регистр, убираем пробелы по краям, заменяем похожие буквы
+def normalize_string(s):
+    s = s.strip().lower().replace('ё','е').replace('й','и')
+    return s
+
 # Конвертирует список кортежей в строку с разделителями ', '
 def convert_list_tup_to_str(list_tup):
     s = ''
