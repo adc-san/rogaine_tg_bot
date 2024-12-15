@@ -59,7 +59,7 @@ def admin_result_msg(message, mode):
         cursor.execute('SELECT * FROM users')
         user_list = cursor.fetchall()
         conn.close()
-        tmp_msg = ''
+        tmp_msg = '-'
         if len(user_list) > 0:
             for u in user_list:
                 user_id = u[0]
@@ -111,8 +111,6 @@ def admin_result_msg(message, mode):
                     tmp_msg += tmp_part_msg
         else:
             tmp_msg = bot_messages.admin_nodata
-        if len(tmp_msg) == 0:
-            tmp_msg = '-'
         bot.send_message(message.chat.id,tmp_msg, parse_mode='HTML')
 
 # Функция, обрабатывающая команду /admin
