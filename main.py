@@ -82,7 +82,7 @@ def admin_result_msg(message, short):
                     tmp_str1 = f"<b>{command_name or ''}</b> {fin_time or ''} @{username or ''} {first_name or ''} {last_name or ''} id{user_id}"
                     tmp_str2 = f"\n{cp_count}/{bot_utils.get_total_cp_count()}=<b>{cp_sum}</b>={all_cp_list}<b>({no_cp_list})</b>\n\n"
                     if(cp_count == 0):
-                        tmp_str2 = ''
+                        tmp_str2 = '\n\n'
                 tmp_part_msg = f"{tmp_str1}{tmp_str2}"
                 # Разрываем сообщение, чтобы уложиться в ограничение ТГ в 4095 символов
                 if len(tmp_msg) + len(tmp_part_msg)> 4095:
