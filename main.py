@@ -130,7 +130,11 @@ def handle_text(message):
             else:
                 # КП ещё не взят
                 have_cp_list.update({user_id: user_cp})
-                bot.send_message(message.chat.id, bot_messages.answer.format(user_cp))
+                # Если тест в режиме запоминания названия команды
+                if user_cp == config.test_cp and config.test_command_name_mode:
+                    bot.send_message(message.chat.id, bot_messages.test_name.format(user_cp))
+                else:
+                    bot.send_message(message.chat.id, bot_messages.answer.format(user_cp))
         else:
             # КП нет на карте
             bot.send_message(message.chat.id, bot_messages.no_point)
@@ -158,7 +162,7 @@ def handle_text(message):
                 # Тестовая точка
                 if user_cp == config.test_cp:
                     if config.test_command_name_mode:
-                        tmp_message = bot_messages.true_answer.format(user_cp) + ' ' + bot_messages.command_name.format(
+                        tmp_message = bot_messages.command_name.format(
                             user_command_name) + ' ' + bot_messages.next_point
                     else:
                         if cp_problem:
