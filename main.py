@@ -48,7 +48,36 @@ def finish(message):
     bot.send_message(message.chat.id, tmp_message, parse_mode='HTML')
 
 
-
+# Функция, обрабатывающая вывод лога для админиcтратора /log
+@bot.message_handler(commands=["log"])
+def log(message):
+    user_id = message.from_user.id
+    bot.send_message(message.chat.id, f'{start_time} v{version}', parse_mode='HTML')
+    if user_id in config.admin_id:
+        conn = sqlite3.connect(config.db_filename)
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM game')
+        game_list = cursor.fetchall()
+        conn.close()
+        tmp_msg = ''
+        if len(game_list) > 0:
+            for s in game_list:
+                event_num = s[0] 
+                event_user_id = s[1] 
+                event_cp = s[2] 
+                event_ch = s[3] 
+                tmp_part_msg = f"{event_num}) <b>{event_cp}</b> id{event_user_id}-{event_ch}\n"
+                # Разрываем сообщение, чтобы уложиться в ограничение ТГ в 4095 символов
+                if len(tmp_msg) + len(tmp_part_msg)> 4095:
+                    bot.send_message(message.chat.id,tmp_msg, parse_mode='HTML')
+                    tmp_msg = tmp_part_msg
+                else:
+                    tmp_msg += tmp_part_msg
+        else:
+            tmp_msg = bot_messages.admin_nodata
+        if len(tmp_msg) == 0:
+            tmp_msg = '-'    
+        bot.send_message(message.chat.id,tmp_msg, parse_mode='HTML')
 # Функция, обрабатывающая вывод результатов для админиcтратора
 def admin_result_msg(message, mode):
     user_id = message.from_user.id
