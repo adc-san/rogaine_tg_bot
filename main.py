@@ -48,6 +48,7 @@ def finish(message):
     bot.send_message(message.chat.id, tmp_message, parse_mode='HTML')
 
 
+
 # Функция, обрабатывающая вывод результатов для админиcтратора
 def admin_result_msg(message, mode):
     user_id = message.from_user.id
@@ -124,11 +125,11 @@ def a(message):
     admin_result_msg(message, mode=1)
 # Функция, обрабатывающая команду /nof    
 @bot.message_handler(commands=["nof"])
-def a(message):
+def nof(message):
     admin_result_msg(message, mode=2)
 # Функция, обрабатывающая команду /non    
 @bot.message_handler(commands=["non"])
-def a(message):
+def non(message):
     admin_result_msg(message, mode=3)
 
 # Получение сообщений от юзера
