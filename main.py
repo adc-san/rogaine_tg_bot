@@ -22,13 +22,13 @@ have_cp_list = dict()
 def start(message):
     user_id = message.from_user.id
     username = message.from_user.username
-    first_name = message.from_user.first_name
-    last_name = message.from_user.last_name
-    bot.send_message(message.chat.id, bot_messages.start.format(first_name), reply_markup=bot_utils.make_reply_keyboard())
+    first_name = telebot.formatting.escape_html(message.from_user.first_name) # защищаемся от html иньекции в данных пользователя
+    last_name = telebot.formatting.escape_html(message.from_user.last_name)
+    bot.send_message(message.chat.id, bot_messages.start.format(first_name), reply_markup=bot_utils.make_reply_keyboard(), parse_mode='HTML')
     if config.test_cp in config.secret_dict:
-        bot.send_message(message.chat.id, bot_messages.test)
+        bot.send_message(message.chat.id, bot_messages.test, parse_mode='HTML')
     if bot_utils.save_user(user_id, username, first_name, last_name, command_name='') is not None:
-        bot.send_message(message.chat.id, bot_messages.some_error)  # Неизвестная ошибка БД
+        bot.send_message(message.chat.id, bot_messages.some_error, parse_mode='HTML')  # Неизвестная ошибка БД
 
 # Функция, обрабатывающая команду /finish
 @bot.message_handler(commands=["finish"])
@@ -45,13 +45,13 @@ def finish(message):
     if len(no_cp_list) > 0:
         tmp_message += '\n' + bot_messages.fin2.format(no_cp_list)
     tmp_message += '\n' + bot_messages.fin3.format(finish_time, config.bot_message_org)
-    bot.send_message(message.chat.id, tmp_message)
+    bot.send_message(message.chat.id, tmp_message, parse_mode='HTML')
 
 
 # Функция, обрабатывающая вывод результатов для админитратора
 def admin_result_msg(message, short):
     user_id = message.from_user.id
-    bot.send_message(message.chat.id, f'{start_time} v{version}')
+    bot.send_message(message.chat.id, f'{start_time} v{version}', parse_mode='HTML')
     if user_id in config.admin_id:
         conn = sqlite3.connect(config.db_filename)
         cursor = conn.cursor()
@@ -114,6 +114,8 @@ def handle_text(message):
     user_text_original = message.text  # Сохраняем исходное сообщение
     user_text = bot_utils.normalize_string(user_text_original)  # Переводим в нижний регистр и убираем пробелы по краям и заменяем похожие буквы
     user_id = message.from_user.id
+    first_name = telebot.formatting.escape_html(message.from_user.first_name) # защищаемся от html иньекции в данных пользователя
+    last_name = telebot.formatting.escape_html(message.from_user.last_name)
 
     # Код КП - это число, а шифр - ВСЕГДА не число
     if user_text.isdigit():
@@ -128,18 +130,18 @@ def handle_text(message):
             conn.close()
             if info is not None and len(info) > 0:
                 # КП уже есть в базе
-                bot.send_message(message.chat.id, bot_messages.have_cp.format(user_cp) + ' ' + bot_messages.next_point)
+                bot.send_message(message.chat.id, bot_messages.have_cp.format(user_cp) + ' ' + bot_messages.next_point, parse_mode='HTML')
             else:
                 # КП ещё не взят
                 have_cp_list.update({user_id: user_cp})
                 # Если тест в режиме запоминания названия команды
                 if user_cp == config.test_cp and config.test_command_name_mode:
-                    bot.send_message(message.chat.id, bot_messages.test_name.format(user_cp))
+                    bot.send_message(message.chat.id, bot_messages.test_name.format(user_cp), parse_mode='HTML')
                 else:
-                    bot.send_message(message.chat.id, bot_messages.answer.format(user_cp))
+                    bot.send_message(message.chat.id, bot_messages.answer.format(user_cp), parse_mode='HTML')
         else:
             # КП нет на карте
-            bot.send_message(message.chat.id, bot_messages.no_point)
+            bot.send_message(message.chat.id, bot_messages.no_point, parse_mode='HTML')
     else:
         if user_id in have_cp_list:
             user_cp = have_cp_list[user_id]
@@ -152,7 +154,8 @@ def handle_text(message):
             # Если тест в режиме запоминания названия команды
             if user_cp == config.test_cp and config.test_command_name_mode:
                 # Запоминаем имя команды и подставляем правильный шифр в качестве ответа
-                user_command_name, user_text = user_text_original, cp_secret
+                user_command_name = telebot.formatting.escape_html(user_text_original) # защищаемся от html иньекции в данных пользователя
+                user_text = cp_secret
             # Если пользователь сообщил что точка сорвана
             elif user_text in tmp_problem_cp_words:
                 # Подставляем правильный шифр в качестве ответа
@@ -171,9 +174,8 @@ def handle_text(message):
                             tmp_message = bot_messages.cp_problem_check.format(user_cp) + ' ' + bot_messages.next_point
                         else:
                             tmp_message = bot_messages.true_answer.format(user_cp) + ' ' + bot_messages.next_point
-                    # Сохранение пользователя при взятии тестовой точки
-                    if bot_utils.save_user(user_id, message.from_user.username, message.from_user.first_name,
-                                           message.from_user.last_name, user_command_name) is not None:
+                    # Сохранение пользователя при взятии тестовой точки (защищаемся от html иньекции в данных пользователя)
+                    if bot_utils.save_user(user_id, first_name, last_name, user_command_name) is not None:
                         tmp_message += bot_messages.some_error
                 else:
                     # Сохранение информации о КП в базу данных
@@ -218,17 +220,17 @@ def handle_text(message):
                             tmp_message += '\n' + bot_messages.next_point
                     finally:
                         conn.close()
-                bot.send_message(message.chat.id, tmp_message, parse_mode="Markdown")
+                bot.send_message(message.chat.id, tmp_message, parse_mode='HTML')
                 if user_cp == config.fin_cp:
                     finish(message)
             else:
                 # Не угадал шифр
-                bot.send_message(message.chat.id, bot_messages.false_answer + ' ' + bot_messages.point)
+                bot.send_message(message.chat.id, bot_messages.false_answer + ' ' + bot_messages.point, parse_mode='HTML')
             if user_id in have_cp_list:
                 del have_cp_list[user_id]
         else:
             # Еще не ввёл номер КП
-            bot.send_message(message.chat.id, bot_messages.digits_need)
+            bot.send_message(message.chat.id, bot_messages.digits_need, parse_mode='HTML')
 
 
 # Старт программы-----------------------------------------------------------------------------
