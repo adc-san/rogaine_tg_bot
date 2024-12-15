@@ -92,6 +92,8 @@ def admin_result_msg(message, short):
                     tmp_msg += tmp_part_msg
         else:
             tmp_msg = bot_messages.admin_nodata
+        if len(tmp_msg) == 0:
+            tmp_msg = '-'
         bot.send_message(message.chat.id,tmp_msg, parse_mode='HTML')
 
 # Функция, обрабатывающая команду /admin
