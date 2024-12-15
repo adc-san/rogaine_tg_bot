@@ -48,8 +48,8 @@ def finish(message):
     bot.send_message(message.chat.id, tmp_message, parse_mode='HTML')
 
 
-# Функция, обрабатывающая вывод результатов для админитратора
-def admin_result_msg(message, short):
+# Функция, обрабатывающая вывод результатов для админиcтратора
+def admin_result_msg(message, mode):
     user_id = message.from_user.id
     bot.send_message(message.chat.id, f'{start_time} v{version}', parse_mode='HTML')
     if user_id in config.admin_id:
@@ -68,21 +68,39 @@ def admin_result_msg(message, short):
                 command_name = u[4]
                 fin_time = u[5]
                 cp_count, cp_sum, cp_list, no_cp_list, all_cp_list = bot_utils.user_result(user_id)
-                # Сокращённый режим вывода
-                if short:
+                # Сокращённый режим вывода - только у кого есть точки и краткая информация
+                if mode == 1:
                     if fin_time and len(fin_time) > 8:
                         fin_time = fin_time[0:8]
-                    tmp_str1 = f"<b>{command_name or ''}</b> {fin_time or ''}"
+                    tmp_str1 = f"<b>{command_name or user_id}</b> {fin_time or ''}"
                     tmp_str2 = f"\n{cp_count}/{bot_utils.get_total_cp_count()}=<b>{cp_sum}</b>={all_cp_list}<b>({no_cp_list})</b>\n\n"
                     if(cp_count == 0):
                         tmp_str1 = ''
                         tmp_str2 = ''
                 # Полный вывод
-                else:
+                elif mode == 1:
                     tmp_str1 = f"<b>{command_name or ''}</b> {fin_time or ''} @{username or ''} {first_name or ''} {last_name or ''} id{user_id}"
                     tmp_str2 = f"\n{cp_count}/{bot_utils.get_total_cp_count()}=<b>{cp_sum}</b>={all_cp_list}<b>({no_cp_list})</b>\n\n"
                     if(cp_count == 0):
                         tmp_str2 = '\n\n'
+                # Вывод не финишировавших с заполненым именем команды
+                elif mode == 2:
+                    if command_name and len(command_name) > 0 and (not fin_time or len(fin_time) == 0):
+                        tmp_str1 = f"<b>{command_name or ''}</b>"
+                        tmp_str2 = f" {cp_count}/{bot_utils.get_total_cp_count()}=<b>{cp_sum}</b>={all_cp_list}<b>({no_cp_list})</b>\n\n"
+                    else:
+                        tmp_str1 = ''
+                        tmp_str2 = ''
+                # Вывод безымянных 
+                else:
+                    if not command_name or len(command_name) == 0:
+                        tmp_str1 = f"<b>{command_name or ''}</b> {fin_time or ''} @{username or ''} {first_name or ''} {last_name or ''} id{user_id}"
+                        tmp_str2 = f"\n{cp_count}/{bot_utils.get_total_cp_count()}=<b>{cp_sum}</b>={all_cp_list}<b>({no_cp_list})</b>\n\n"
+                        if(cp_count == 0):
+                            tmp_str2 = '\n\n'
+                    else:
+                        tmp_str1 = ''
+                        tmp_str2 = ''
                 tmp_part_msg = f"{tmp_str1}{tmp_str2}"
                 # Разрываем сообщение, чтобы уложиться в ограничение ТГ в 4095 символов
                 if len(tmp_msg) + len(tmp_part_msg)> 4095:
@@ -99,11 +117,19 @@ def admin_result_msg(message, short):
 # Функция, обрабатывающая команду /admin
 @bot.message_handler(commands=["admin"])
 def admin(message):
-    admin_result_msg(message, short=False)
+    admin_result_msg(message, mode=0)
 # Функция, обрабатывающая команду /a
 @bot.message_handler(commands=["a"])
 def a(message):
-    admin_result_msg(message, short=True)
+    admin_result_msg(message, mode=1)
+# Функция, обрабатывающая команду /nof    
+@bot.message_handler(commands=["nof"])
+def a(message):
+    admin_result_msg(message, mode=2)
+# Функция, обрабатывающая команду /non    
+@bot.message_handler(commands=["non"])
+def a(message):
+    admin_result_msg(message, mode=3)
 
 # Получение сообщений от юзера
 @bot.message_handler(content_types=["text"])
