@@ -7,7 +7,7 @@ import bot_messages
 import bot_utils
 
 # Версия релиза
-version = '0.8.1 '
+version = '0.8.2 '
 # Фиксируем время запуска
 start_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
 
