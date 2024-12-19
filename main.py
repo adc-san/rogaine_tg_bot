@@ -22,7 +22,7 @@ have_cp_list = dict()
 def start(message):
     user_id = message.from_user.id
     username = message.from_user.username
-    first_name = telebot.formatting.escape_html(message.from_user.first_name) # защищаемся от html иньекции в данных пользователя
+    first_name = telebot.formatting.escape_html(message.from_user.first_name) # защищаемся от html инъекции в данных пользователя
     last_name = telebot.formatting.escape_html(message.from_user.last_name)
     bot.send_message(message.chat.id, bot_messages.start.format(first_name), reply_markup=bot_utils.make_reply_keyboard(), parse_mode='HTML')
     if config.test_cp in config.secret_dict:
@@ -48,7 +48,7 @@ def finish(message):
     bot.send_message(message.chat.id, tmp_message, parse_mode='HTML')
 
 
-# Функция, обрабатывающая вывод лога для админиcтратора /log
+# Функция, обрабатывающая вывод лога для администратора /log
 @bot.message_handler(commands=["log"])
 def log(message):
     user_id = message.from_user.id
@@ -78,7 +78,7 @@ def log(message):
         if len(tmp_msg) == 0:
             tmp_msg = '-'    
         bot.send_message(message.chat.id,tmp_msg, parse_mode='HTML')
-# Функция, обрабатывающая вывод результатов для админиcтратора
+# Функция, обрабатывающая вывод результатов для администратора
 def admin_result_msg(message, mode):
     user_id = message.from_user.id
     bot.send_message(message.chat.id, f'{start_time} v{version}', parse_mode='HTML')
@@ -113,7 +113,7 @@ def admin_result_msg(message, mode):
                     tmp_str2 = f"\n{cp_count}/{bot_utils.get_total_cp_count()}=<b>{cp_sum}</b>={all_cp_list}<b>({no_cp_list})</b>\n\n"
                     if cp_count == 0:
                         tmp_str2 = '\n\n'
-                # Вывод не финишировавших с заполненым именем команды
+                # Вывод не финишировавших с заполненным именем команды
                 elif mode == 2:
                     if command_name and len(command_name) > 0 and (not fin_time or len(fin_time) == 0):
                         tmp_str1 = f"<b>{command_name or ''}</b>"
@@ -171,7 +171,7 @@ def handle_text(message):
     user_text = bot_utils.normalize_string(user_text_original)  # Переводим в нижний регистр и убираем пробелы по краям и заменяем похожие буквы
     user_id = message.from_user.id
     username = message.from_user.username
-    first_name = telebot.formatting.escape_html(message.from_user.first_name) # защищаемся от html иньекции в данных пользователя
+    first_name = telebot.formatting.escape_html(message.from_user.first_name) # защищаемся от html инъекции в данных пользователя
     last_name = telebot.formatting.escape_html(message.from_user.last_name)
 
     # Код КП - это число, а шифр - ВСЕГДА не число
@@ -211,7 +211,7 @@ def handle_text(message):
             # Если тест в режиме запоминания названия команды
             if user_cp == config.test_cp and config.test_command_name_mode:
                 # Запоминаем имя команды и подставляем правильный шифр в качестве ответа
-                user_command_name = telebot.formatting.escape_html(user_text_original) # защищаемся от html иньекции в данных пользователя
+                user_command_name = telebot.formatting.escape_html(user_text_original) # защищаемся от html инъекции в данных пользователя
                 user_text = cp_secret
             # Если пользователь сообщил что точка сорвана
             elif user_text in tmp_problem_cp_words:
@@ -231,7 +231,7 @@ def handle_text(message):
                             tmp_message = bot_messages.cp_problem_check.format(user_cp) + ' ' + bot_messages.next_point
                         else:
                             tmp_message = bot_messages.true_answer.format(user_cp) + ' ' + bot_messages.next_point
-                    # Сохранение пользователя при взятии тестовой точки (защищаемся от html иньекции в данных пользователя)
+                    # Сохранение пользователя при взятии тестовой точки (защищаемся от html инъекции в данных пользователя)
                     if bot_utils.save_user(user_id, username, first_name, last_name, user_command_name) is not None:
                         tmp_message += bot_messages.some_error
                 else:
