@@ -7,7 +7,7 @@ import bot_messages
 import bot_utils
 
 # Версия релиза
-version = '0.7  '
+version = '0.8.1 '
 # Фиксируем время запуска
 start_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
 
@@ -108,7 +108,7 @@ def admin_result_msg(message, mode):
                         tmp_str1 = ''
                         tmp_str2 = ''
                 # Полный вывод
-                elif mode == 1:
+                elif mode == 0:
                     tmp_str1 = f"<b>{command_name or ''}</b> {fin_time or ''} @{username or ''} {first_name or ''} {last_name or ''} id{user_id}"
                     tmp_str2 = f"\n{cp_count}/{bot_utils.get_total_cp_count()}=<b>{cp_sum}</b>={all_cp_list}<b>({no_cp_list})</b>\n\n"
                     if(cp_count == 0):
@@ -292,7 +292,7 @@ def handle_text(message):
 # Старт программы-----------------------------------------------------------------------------
 print('----------------------------')
 print('-   ROGAINE TELEGRAM BOT   -')
-print(f'-     STARTED v{version}       -')
+print(f'-     STARTED v{version}      -')
 print(f'-  {start_time}   -')
 print('----------------------------')
 
