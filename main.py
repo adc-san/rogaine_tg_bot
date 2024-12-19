@@ -7,7 +7,7 @@ import bot_messages
 import bot_utils
 
 # Версия релиза
-version = '0.8.2 '
+version = '0.8.3 '
 # Фиксируем время запуска
 start_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
 
@@ -170,6 +170,7 @@ def handle_text(message):
     user_text_original = message.text  # Сохраняем исходное сообщение
     user_text = bot_utils.normalize_string(user_text_original)  # Переводим в нижний регистр и убираем пробелы по краям и заменяем похожие буквы
     user_id = message.from_user.id
+    username = message.from_user.username
     first_name = telebot.formatting.escape_html(message.from_user.first_name) # защищаемся от html иньекции в данных пользователя
     last_name = telebot.formatting.escape_html(message.from_user.last_name)
 
@@ -231,7 +232,7 @@ def handle_text(message):
                         else:
                             tmp_message = bot_messages.true_answer.format(user_cp) + ' ' + bot_messages.next_point
                     # Сохранение пользователя при взятии тестовой точки (защищаемся от html иньекции в данных пользователя)
-                    if bot_utils.save_user(user_id, first_name, last_name, user_command_name) is not None:
+                    if bot_utils.save_user(user_id, username, first_name, last_name, user_command_name) is not None:
                         tmp_message += bot_messages.some_error
                 else:
                     # Сохранение информации о КП в базу данных
