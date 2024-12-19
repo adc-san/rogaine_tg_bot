@@ -7,7 +7,7 @@ import bot_messages
 import bot_utils
 
 # Версия релиза
-version = '0.8.3 '
+version = '0.8.4 '
 # Фиксируем время запуска
 start_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
 
@@ -24,6 +24,8 @@ def start(message):
     username = message.from_user.username
     first_name = telebot.formatting.escape_html(message.from_user.first_name) # защищаемся от html инъекции в данных пользователя
     last_name = telebot.formatting.escape_html(message.from_user.last_name)
+    first_name = telebot.formatting.escape_html(message.from_user.first_name or '') # защищаемся от html инъекции в данных пользователя
+    last_name = telebot.formatting.escape_html(message.from_user.last_name or '')
     bot.send_message(message.chat.id, bot_messages.start.format(first_name), reply_markup=bot_utils.make_reply_keyboard(), parse_mode='HTML')
     if config.test_cp in config.secret_dict:
         bot.send_message(message.chat.id, bot_messages.test, parse_mode='HTML')
@@ -173,6 +175,8 @@ def handle_text(message):
     username = message.from_user.username
     first_name = telebot.formatting.escape_html(message.from_user.first_name) # защищаемся от html инъекции в данных пользователя
     last_name = telebot.formatting.escape_html(message.from_user.last_name)
+    first_name = telebot.formatting.escape_html(message.from_user.first_name or '') # защищаемся от html инъекции в данных пользователя
+    last_name = telebot.formatting.escape_html(message.from_user.last_name or '')
 
     # Код КП - это число, а шифр - ВСЕГДА не число
     if user_text.isdigit():
@@ -211,7 +215,7 @@ def handle_text(message):
             # Если тест в режиме запоминания названия команды
             if user_cp == config.test_cp and config.test_command_name_mode:
                 # Запоминаем имя команды и подставляем правильный шифр в качестве ответа
-                user_command_name = telebot.formatting.escape_html(user_text_original) # защищаемся от html инъекции в данных пользователя
+                user_command_name = telebot.formatting.escape_html(user_text_original or '') # защищаемся от html инъекции в данных пользователя
                 user_text = cp_secret
             # Если пользователь сообщил что точка сорвана
             elif user_text in tmp_problem_cp_words:
