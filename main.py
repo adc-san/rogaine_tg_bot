@@ -7,7 +7,7 @@ import bot_messages
 import bot_utils
 
 # Версия релиза
-version = '0.8.5 '
+version = '0.8.6 '
 # Фиксируем время запуска
 start_time = datetime.now().strftime("%Y/%m/%d - %H:%M:%S")
 
@@ -58,15 +58,27 @@ def log(message):
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM game')
         game_list = cursor.fetchall()
+        cursor.execute('SELECT * FROM users')
+        user_list = cursor.fetchall()
         conn.close()
+        user_dict = dict()
+        if len(user_list) > 0:
+            for u in user_list:
+                user_dict[u[0]] = u[4]
         tmp_msg = ''
         if len(game_list) > 0:
             for s in game_list:
                 event_num = s[0] 
                 event_user_id = s[1] 
                 event_cp = s[2] 
-                event_ch = s[3] 
-                tmp_part_msg = f"{event_num}) <b>{event_cp}</b> id{event_user_id}-{event_ch}\n"
+                event_ch = s[3]
+                event_command = f"id{event_user_id}"
+                if event_user_id in user_dict:
+                    event_command = user_dict[event_user_id]
+                if event_ch == 1:
+                    tmp_part_msg = f"{event_num}) <b>{event_cp}</b> {event_command}\n"
+                else:
+                    tmp_part_msg = f"{event_num}) <s>{event_cp}</s> {event_command}\n"
                 # Разрываем сообщение, чтобы уложиться в ограничение ТГ в 4095 символов
                 if len(tmp_msg) + len(tmp_part_msg)> 4095:
                     bot.send_message(message.chat.id,tmp_msg, parse_mode='HTML')
