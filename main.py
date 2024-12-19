@@ -104,14 +104,14 @@ def admin_result_msg(message, mode):
                         fin_time = fin_time[0:8]
                     tmp_str1 = f"<b>{command_name or user_id}</b> {fin_time or ''}"
                     tmp_str2 = f"\n{cp_count}/{bot_utils.get_total_cp_count()}=<b>{cp_sum}</b>={all_cp_list}<b>({no_cp_list})</b>\n\n"
-                    if(cp_count == 0):
+                    if cp_count == 0:
                         tmp_str1 = ''
                         tmp_str2 = ''
                 # Полный вывод
                 elif mode == 0:
                     tmp_str1 = f"<b>{command_name or ''}</b> {fin_time or ''} @{username or ''} {first_name or ''} {last_name or ''} id{user_id}"
                     tmp_str2 = f"\n{cp_count}/{bot_utils.get_total_cp_count()}=<b>{cp_sum}</b>={all_cp_list}<b>({no_cp_list})</b>\n\n"
-                    if(cp_count == 0):
+                    if cp_count == 0:
                         tmp_str2 = '\n\n'
                 # Вывод не финишировавших с заполненым именем команды
                 elif mode == 2:
@@ -126,7 +126,7 @@ def admin_result_msg(message, mode):
                     if not command_name or len(command_name) == 0:
                         tmp_str1 = f"<b>{command_name or ''}</b> {fin_time or ''} @{username or ''} {first_name or ''} {last_name or ''} id{user_id}"
                         tmp_str2 = f"\n{cp_count}/{bot_utils.get_total_cp_count()}=<b>{cp_sum}</b>={all_cp_list}<b>({no_cp_list})</b>\n\n"
-                        if(cp_count == 0):
+                        if cp_count == 0:
                             tmp_str2 = '\n\n'
                     else:
                         tmp_str1 = ''
