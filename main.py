@@ -7,9 +7,9 @@ import bot_messages
 import bot_utils
 
 # Версия релиза
-version = '0.8.4 '
+version = '0.8.5 '
 # Фиксируем время запуска
-start_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
+start_time = datetime.now().strftime("%Y/%m/%d - %H:%M:%S")
 
 # Создаем экземпляр бота, многопоточность отключена для избежания гонок обработки(threaded=False)
 bot = telebot.TeleBot(config.bot_token, threaded=False)
@@ -22,8 +22,6 @@ have_cp_list = dict()
 def start(message):
     user_id = message.from_user.id
     username = message.from_user.username
-    first_name = telebot.formatting.escape_html(message.from_user.first_name) # защищаемся от html инъекции в данных пользователя
-    last_name = telebot.formatting.escape_html(message.from_user.last_name)
     first_name = telebot.formatting.escape_html(message.from_user.first_name or '') # защищаемся от html инъекции в данных пользователя
     last_name = telebot.formatting.escape_html(message.from_user.last_name or '')
     bot.send_message(message.chat.id, bot_messages.start.format(first_name), reply_markup=bot_utils.make_reply_keyboard(), parse_mode='HTML')
@@ -37,7 +35,7 @@ def start(message):
 def finish(message):
     user_id = message.from_user.id
     cp_count, cp_sum, cp_list, no_cp_list, all_cp_list  = bot_utils.user_result(user_id)
-    finish_time = datetime.now().strftime("%H:%M:%S - %Y/%m/%d")
+    finish_time = datetime.now().strftime("%Y/%m/%d - %H:%M:%S")
     #Добавляем пробелы для вывода списка КП
     cp_list = ', '.join(cp_list.split(sep=','))
     no_cp_list = ', '.join(no_cp_list.split(sep=','))
@@ -87,7 +85,7 @@ def admin_result_msg(message, mode):
     if user_id in config.admin_id:
         conn = sqlite3.connect(config.db_filename)
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM users')
+        cursor.execute('SELECT * FROM users ORDER BY finish_time DESC, command_name ASC, username ASC, id ASC')
         user_list = cursor.fetchall()
         conn.close()
         tmp_msg = ''
@@ -102,8 +100,8 @@ def admin_result_msg(message, mode):
                 cp_count, cp_sum, cp_list, no_cp_list, all_cp_list = bot_utils.user_result(user_id)
                 # Сокращённый режим вывода - только у кого есть точки и краткая информация
                 if mode == 1:
-                    if fin_time and len(fin_time) > 8:
-                        fin_time = fin_time[0:8]
+                    if fin_time and len(fin_time) > 20:
+                        fin_time = fin_time[13:21]
                     tmp_str1 = f"<b>{command_name or user_id}</b> {fin_time or ''}"
                     tmp_str2 = f"\n{cp_count}/{bot_utils.get_total_cp_count()}=<b>{cp_sum}</b>={all_cp_list}<b>({no_cp_list})</b>\n\n"
                     if cp_count == 0:
@@ -173,8 +171,6 @@ def handle_text(message):
     user_text = bot_utils.normalize_string(user_text_original)  # Переводим в нижний регистр и убираем пробелы по краям и заменяем похожие буквы
     user_id = message.from_user.id
     username = message.from_user.username
-    first_name = telebot.formatting.escape_html(message.from_user.first_name) # защищаемся от html инъекции в данных пользователя
-    last_name = telebot.formatting.escape_html(message.from_user.last_name)
     first_name = telebot.formatting.escape_html(message.from_user.first_name or '') # защищаемся от html инъекции в данных пользователя
     last_name = telebot.formatting.escape_html(message.from_user.last_name or '')
 
