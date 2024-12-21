@@ -7,7 +7,7 @@ import bot_messages
 import bot_utils
 
 # Версия релиза
-version = '0.8.6 '
+version = '0.9   '
 # Фиксируем время запуска
 start_time = datetime.now().strftime("%Y/%m/%d - %H:%M:%S")
 
@@ -16,6 +16,19 @@ bot = telebot.TeleBot(config.bot_token, threaded=False)
 
 # Словарь для хранения последних номеров КП, для которых ожидаем ввод шифра
 have_cp_list = dict()
+# Список для хранения id сохраненных пользователей
+id_list = list()
+
+def get_id_list_from_bd():
+    conn = sqlite3.connect(config.db_filename)
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users')
+    user_list = cursor.fetchall()
+    conn.close()
+    if len(user_list) > 0:
+        for u in user_list:
+            id_list.append(u[0])
+
 
 # Функция, обрабатывающая команду /start
 @bot.message_handler(commands=["start"])
@@ -185,6 +198,12 @@ def handle_text(message):
     username = message.from_user.username
     first_name = telebot.formatting.escape_html(message.from_user.first_name or '') # защищаемся от html инъекции в данных пользователя
     last_name = telebot.formatting.escape_html(message.from_user.last_name or '')
+    # Если пользователя нет в списке - сохраняем
+    if not(user_id in id_list):
+        if bot_utils.save_user(user_id, username, first_name, last_name, command_name='') is not None:
+            bot.send_message(message.chat.id, bot_messages.some_error, parse_mode='HTML')  # Неизвестная ошибка БД
+        else:
+            id_list.append(user_id)
 
     # Код КП - это число, а шифр - ВСЕГДА не число
     if user_text.isdigit():
@@ -311,6 +330,7 @@ print('----------------------------')
 
 # Создаем таблицы для хранения данных
 bot_utils.create_tables()
-
+# Заполняем список id
+get_id_list_from_bd()
 # Запускаем бота - бесконечный цикл опроса. Используем infinity_polling, чтобы при проблемах со связью бот не падал
 bot.infinity_polling(none_stop=True, interval=0)
