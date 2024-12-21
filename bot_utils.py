@@ -5,7 +5,7 @@ import bot_messages
 
 # Переводим в нижний регистр, убираем пробелы по краям, заменяем похожие буквы
 def normalize_string(s):
-    s = s.strip().lower().replace('ё','е').replace('й','и')
+    s = s.strip().lower().replace('ё','е').replace('й','и').replace('щ','ш').replace('ъ','ь')
     return s
 
 def create_tables():
