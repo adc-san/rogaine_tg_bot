@@ -106,15 +106,21 @@ def user_result(user_id):
 
 
 # Функция записывает время финиша в БД
-def user_write_finish_time(user_id, finish_time):
-    conn = sqlite3.connect(config.db_filename)
-    cursor = conn.cursor()
+def user_write_finish_time(user_id, finish_time, conn=None):
+    own_connection = conn is None
+    if own_connection:
+        conn = sqlite3.connect(config.db_filename)
     try:
+        cursor = conn.cursor()
         cursor.execute("UPDATE users SET finish_time=? WHERE id=?",
                        (finish_time, user_id))
-        conn.commit()
-    except:
-        pass
+        if cursor.rowcount != 1:
+            raise sqlite3.IntegrityError('User not found')
+        if own_connection:
+            conn.commit()
+    finally:
+        if own_connection:
+            conn.close()
 
 # Количество КП в списке, кроме тестового
 def get_total_cp_count():
