@@ -1,10 +1,11 @@
 import sqlite3
 import bot_utils
+import config
 
 
 def drop_game_table():
     # Подключение к базе данных SQLite
-    conn = sqlite3.connect('rogaine_tg_bot_data.db')
+    conn = sqlite3.connect(config.db_filename)
     cursor = conn.cursor()
 
     # Удаление таблицы результатов
