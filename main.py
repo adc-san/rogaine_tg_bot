@@ -45,15 +45,27 @@ def start(message):
 
 # Функция, обрабатывающая команду /finish
 @bot.message_handler(commands=["finish"])
-def finish(message):
+def finish(message, saved_finish_time=None):
     user_id = message.from_user.id
-    cp_count, cp_sum, cp_list, no_cp_list, all_cp_list  = bot_utils.user_result(user_id)
-    finish_time = datetime.now().strftime("%Y/%m/%d - %H:%M:%S")
+    try:
+        if saved_finish_time is None:
+            first_name = telebot.formatting.escape_html(message.from_user.first_name or '')
+            last_name = telebot.formatting.escape_html(message.from_user.last_name or '')
+            if bot_utils.save_user(user_id, message.from_user.username, first_name, last_name, '') is not None:
+                bot.send_message(message.chat.id, bot_messages.some_error, parse_mode='HTML')
+                return
+            finish_time = datetime.now().strftime("%Y/%m/%d - %H:%M:%S")
+            bot_utils.user_write_finish_time(user_id, finish_time)
+        else:
+            # Финишный КП и это время уже сохранены одной транзакцией.
+            finish_time = saved_finish_time
+        cp_count, cp_sum, cp_list, no_cp_list, all_cp_list = bot_utils.user_result(user_id)
+    except sqlite3.Error:
+        bot.send_message(message.chat.id, bot_messages.some_error, parse_mode='HTML')
+        return
     #Добавляем пробелы для вывода списка КП
     cp_list = ', '.join(cp_list.split(sep=','))
     no_cp_list = ', '.join(no_cp_list.split(sep=','))
-    # Записываем время финиша в БД
-    bot_utils.user_write_finish_time(user_id, finish_time)
     tmp_message = bot_messages.fin1.format(cp_count, bot_utils.get_total_cp_count(), cp_list, cp_sum)
     if len(no_cp_list) > 0:
         tmp_message += '\n' + bot_messages.fin2.format(no_cp_list)
@@ -202,6 +214,7 @@ def handle_text(message):
     if not(user_id in id_list):
         if bot_utils.save_user(user_id, username, first_name, last_name, command_name='') is not None:
             bot.send_message(message.chat.id, bot_messages.some_error, parse_mode='HTML')  # Неизвестная ошибка БД
+            return
         else:
             id_list.append(user_id)
 
@@ -252,6 +265,7 @@ def handle_text(message):
 
             # Если шифр совпадает
             if user_text == cp_secret:
+                checkpoint_finish_time = None
                 # Тестовая точка
                 if user_cp == config.test_cp:
                     if config.test_command_name_mode:
@@ -265,52 +279,61 @@ def handle_text(message):
                     # Сохранение пользователя при взятии тестовой точки (защищаемся от html инъекции в данных пользователя)
                     if bot_utils.save_user(user_id, username, first_name, last_name, user_command_name) is not None:
                         tmp_message += bot_messages.some_error
+                    elif user_cp == config.fin_cp:
+                        try:
+                            checkpoint_finish_time = datetime.now().strftime("%Y/%m/%d - %H:%M:%S")
+                            bot_utils.user_write_finish_time(user_id, checkpoint_finish_time)
+                        except sqlite3.Error:
+                            checkpoint_finish_time = None
+                            tmp_message = bot_messages.some_error
                 else:
                     # Сохранение информации о КП в базу данных
                     if cp_problem:
                         user_ch = 0
                     else:
                         user_ch = 1
-                    conn = sqlite3.connect(config.db_filename)
-                    cursor = conn.cursor()
+                    conn = None
                     try:
-                        cursor.execute("INSERT INTO game (id, cp, ch) VALUES (?, ?, ?)",
-                                       (user_id, user_cp, user_ch))
-                        conn.commit()
-                    except sqlite3.IntegrityError:
-                        # КП уже взят
-                        if cp_problem:
-                            tmp_message = bot_messages.dub.format(user_cp)
-                        else:
-                            # Помечаем КП взятым, на случай если он ранее помечен сорванным
-                            try:
+                        conn = sqlite3.connect(config.db_filename)
+                        cursor = conn.cursor()
+                        try:
+                            cursor.execute("INSERT INTO game (id, cp, ch) VALUES (?, ?, ?)",
+                                           (user_id, user_cp, user_ch))
+                        except sqlite3.IntegrityError:
+                            # Только существующий КП можно считать повторным взятием.
+                            if cursor.execute("SELECT 1 FROM game WHERE id=? AND cp=?",
+                                              (user_id, user_cp)).fetchone() is None:
+                                raise
+                            if cp_problem:
+                                tmp_message = bot_messages.dub.format(user_cp)
+                            else:
+                                # Помечаем КП взятым, на случай если он ранее помечен сорванным.
                                 cursor.execute("UPDATE game SET ch=? WHERE id=? AND cp=?",
                                                (user_ch, user_id, user_cp))
-                                conn.commit()
-                            except:
-                                tmp_message = bot_messages.some_error
-                            else:
                                 tmp_message = bot_messages.true_answer.format(user_cp)
                                 tmp_message += '\n' + bot_messages.next_point
-
-
-                    except:
-                        # Неизвестная ошибка БД
-                        tmp_message = bot_messages.some_error
-                    else:
-                        if cp_problem:
-                            tmp_message = bot_messages.cp_problem_check.format(user_cp)
                         else:
-                            tmp_message = bot_messages.true_answer.format(user_cp)
+                            if cp_problem:
+                                tmp_message = bot_messages.cp_problem_check.format(user_cp)
+                            else:
+                                tmp_message = bot_messages.true_answer.format(user_cp)
+                            if user_cp == config.fin_cp:
+                                tmp_message += '\n' + bot_messages.in_finish
+                            else:
+                                tmp_message += '\n' + bot_messages.next_point
                         if user_cp == config.fin_cp:
-                            tmp_message += '\n' + bot_messages.in_finish
-                        else:
-                            tmp_message += '\n' + bot_messages.next_point
+                            checkpoint_finish_time = datetime.now().strftime("%Y/%m/%d - %H:%M:%S")
+                            bot_utils.user_write_finish_time(user_id, checkpoint_finish_time, conn=conn)
+                        conn.commit()
+                    except sqlite3.Error:
+                        checkpoint_finish_time = None
+                        tmp_message = bot_messages.some_error
                     finally:
-                        conn.close()
+                        if conn is not None:
+                            conn.close()
                 bot.send_message(message.chat.id, tmp_message, parse_mode='HTML')
-                if user_cp == config.fin_cp:
-                    finish(message)
+                if checkpoint_finish_time is not None:
+                    finish(message, saved_finish_time=checkpoint_finish_time)
             else:
                 # Не угадал шифр
                 bot.send_message(message.chat.id, bot_messages.false_answer + ' ' + bot_messages.point, parse_mode='HTML')
