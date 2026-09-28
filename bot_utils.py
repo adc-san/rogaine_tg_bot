@@ -30,7 +30,35 @@ def create_tables():
                    ch INTEGER,
                    UNIQUE(id, cp)
                    )''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS pending_cp (
+                   id INTEGER PRIMARY KEY,
+                   cp INTEGER NOT NULL
+                   )''')
     conn.close()
+
+def save_pending_cp(user_id, cp):
+    conn = sqlite3.connect(config.db_filename)
+    try:
+        conn.execute('''INSERT INTO pending_cp (id, cp) VALUES (?, ?)
+                        ON CONFLICT(id) DO UPDATE SET cp=excluded.cp''', (user_id, cp))
+        conn.commit()
+    finally:
+        conn.close()
+
+def load_pending_cp():
+    conn = sqlite3.connect(config.db_filename)
+    try:
+        return dict(conn.execute('SELECT id, cp FROM pending_cp').fetchall())
+    finally:
+        conn.close()
+
+def delete_pending_cp(user_id):
+    conn = sqlite3.connect(config.db_filename)
+    try:
+        conn.execute('DELETE FROM pending_cp WHERE id=?', (user_id,))
+        conn.commit()
+    finally:
+        conn.close()
 
 def get_fin_button():
     return '🏁 Финиш 🏁'
