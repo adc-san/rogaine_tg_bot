@@ -221,6 +221,11 @@ def handle_text(message):
                 bot.send_message(message.chat.id, bot_messages.have_cp.format(user_cp) + ' ' + bot_messages.next_point, parse_mode='HTML')
             else:
                 # КП ещё не взят
+                try:
+                    bot_utils.save_pending_cp(user_id, user_cp)
+                except sqlite3.Error:
+                    bot.send_message(message.chat.id, bot_messages.some_error, parse_mode='HTML')
+                    return
                 have_cp_list.update({user_id: user_cp})
                 # Если тест в режиме запоминания названия команды
                 if user_cp == config.test_cp and config.test_command_name_mode:
@@ -315,7 +320,12 @@ def handle_text(message):
                 # Не угадал шифр
                 bot.send_message(message.chat.id, bot_messages.false_answer + ' ' + bot_messages.point, parse_mode='HTML')
             if user_id in have_cp_list:
-                del have_cp_list[user_id]
+                try:
+                    bot_utils.delete_pending_cp(user_id)
+                except sqlite3.Error:
+                    bot.send_message(message.chat.id, bot_messages.some_error, parse_mode='HTML')
+                else:
+                    del have_cp_list[user_id]
         else:
             # Еще не ввёл номер КП
             bot.send_message(message.chat.id, bot_messages.digits_need, parse_mode='HTML')
@@ -332,5 +342,11 @@ print('----------------------------')
 bot_utils.create_tables()
 # Заполняем список id
 get_id_list_from_bd()
+# Восстанавливаем ожидание шифра; удалённые из настроек КП больше не ожидаем.
+for pending_user_id, pending_cp in bot_utils.load_pending_cp().items():
+    if pending_cp in config.secret_dict:
+        have_cp_list[pending_user_id] = pending_cp
+    else:
+        bot_utils.delete_pending_cp(pending_user_id)
 # Запускаем бота - бесконечный цикл опроса. Используем infinity_polling, чтобы при проблемах со связью бот не падал
 bot.infinity_polling(none_stop=True, interval=0)
