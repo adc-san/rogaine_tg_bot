@@ -1,6 +1,7 @@
 import telebot
 import sqlite3
 from datetime import datetime
+from html import unescape
 
 import config
 import bot_messages
@@ -18,6 +19,16 @@ bot = telebot.TeleBot(config.bot_token, threaded=False)
 have_cp_list = dict()
 # Список для хранения id сохраненных пользователей
 id_list = list()
+
+MAX_TEAM_NAME_LENGTH = 100
+
+
+def display_team_name(stored_name):
+    # В БД имя уже экранировано; сокращаем текст, не разрывая HTML-сущности.
+    name = unescape(stored_name or '')
+    if len(name) > MAX_TEAM_NAME_LENGTH:
+        name = name[:MAX_TEAM_NAME_LENGTH - 1] + '…'
+    return telebot.formatting.escape_html(name)
 
 def get_id_list_from_bd():
     conn = sqlite3.connect(config.db_filename)
@@ -77,7 +88,7 @@ def log(message):
         user_dict = dict()
         if len(user_list) > 0:
             for u in user_list:
-                user_dict[u[0]] = u[4]
+                user_dict[u[0]] = display_team_name(u[4])
         tmp_msg = ''
         if len(game_list) > 0:
             for s in game_list:
@@ -93,7 +104,7 @@ def log(message):
                 else:
                     tmp_part_msg = f"{event_num}) <s>{event_cp}</s> {event_command}\n"
                 # Разрываем сообщение, чтобы уложиться в ограничение ТГ в 4095 символов
-                if len(tmp_msg) + len(tmp_part_msg)> 4095:
+                if tmp_msg and len(tmp_msg) + len(tmp_part_msg)> 4095:
                     bot.send_message(message.chat.id,tmp_msg, parse_mode='HTML')
                     tmp_msg = tmp_part_msg
                 else:
@@ -120,7 +131,7 @@ def admin_result_msg(message, mode):
                 username = u[1]
                 first_name = u[2]
                 last_name = u[3]
-                command_name = u[4]
+                command_name = display_team_name(u[4])
                 fin_time = u[5]
                 cp_count, cp_sum, cp_list, no_cp_list, all_cp_list = bot_utils.user_result(user_id)
                 # Сокращённый режим вывода - только у кого есть точки и краткая информация
@@ -158,7 +169,7 @@ def admin_result_msg(message, mode):
                         tmp_str2 = ''
                 tmp_part_msg = f"{tmp_str1}{tmp_str2}"
                 # Разрываем сообщение, чтобы уложиться в ограничение ТГ в 4095 символов
-                if len(tmp_msg) + len(tmp_part_msg)> 4095:
+                if tmp_msg and len(tmp_msg) + len(tmp_part_msg)> 4095:
                     bot.send_message(message.chat.id,tmp_msg, parse_mode='HTML')
                     tmp_msg = tmp_part_msg
                 else:
@@ -205,9 +216,15 @@ def handle_text(message):
         else:
             id_list.append(user_id)
 
-    # Код КП - это число, а шифр - ВСЕГДА не число
-    if user_text.isdigit():
-        user_cp = int(user_text)
+    # Название команды может состоять из цифр: ожидание имени важнее номера КП.
+    waiting_team_name = (config.test_command_name_mode
+                         and have_cp_list.get(user_id) == config.test_cp)
+    if user_text.isdecimal() and not waiting_team_name:
+        try:
+            user_cp = int(user_text)
+        except ValueError:
+            bot.send_message(message.chat.id, bot_messages.no_point, parse_mode='HTML')
+            return
         # Если КП есть на карте
         if user_cp in config.secret_dict:
             # Проверка наличия взятого КП в базе
@@ -241,6 +258,11 @@ def handle_text(message):
                 tmp_problem_cp_words += (bot_utils.normalize_string(t),)
             # Если тест в режиме запоминания названия команды
             if user_cp == config.test_cp and config.test_command_name_mode:
+                if len(user_text_original) > MAX_TEAM_NAME_LENGTH:
+                    bot.send_message(message.chat.id,
+                                     bot_messages.team_name_too_long.format(MAX_TEAM_NAME_LENGTH),
+                                     parse_mode='HTML')
+                    return
                 # Запоминаем имя команды и подставляем правильный шифр в качестве ответа
                 user_command_name = telebot.formatting.escape_html(user_text_original or '') # защищаемся от html инъекции в данных пользователя
                 user_text = cp_secret
