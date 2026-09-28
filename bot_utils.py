@@ -97,7 +97,7 @@ def user_result(user_id):
     if len(all_cp_list) > 0:
         tmp_list = list()
         for cp in all_cp_list.split(','):
-            if cp in no_cp_list:
+            if cp in no_cp_list.split(','):
                 tmp_list.append(f'_{cp}_')
             else:
                 tmp_list.append(cp)   
