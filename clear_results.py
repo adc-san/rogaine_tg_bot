@@ -9,6 +9,7 @@ def drop_game_table():
 
     # Удаление таблицы результатов
     cursor.execute('''DROP TABLE IF EXISTS game''')
+    cursor.execute('''DROP TABLE IF EXISTS pending_cp''')
     # Удаление финишного времени
     cursor.execute("UPDATE users SET finish_time=NULL")
     conn.commit()
